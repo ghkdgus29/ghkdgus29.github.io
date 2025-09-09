@@ -41,6 +41,8 @@ analytics:
 sass:
   style: compressed
   sass_dir: _sass
+  load_paths:
+    - _sass
 
 # MathJax 설정
 markdown: kramdown
