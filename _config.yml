@@ -1,6 +1,7 @@
 # Site Settings
 title: hyun-log
 author: hyun
+future: true
 
 permalink: /:title/ #/:categories/:title/
 
@@ -40,3 +41,11 @@ analytics:
 sass:
   style: compressed
   sass_dir: _sass
+
+# MathJax 설정
+markdown: kramdown
+kramdown:
+  math_engine: mathjax
+  math_engine_opts:
+    preview: true
+    preview_as_code: true
