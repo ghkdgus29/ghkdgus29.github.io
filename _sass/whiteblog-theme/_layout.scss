@@ -458,6 +458,120 @@ li {
   opacity: 0.7;
 }
 
+// TOC 사이드바 스타일
+.toc-sidebar {
+  position: fixed;
+  top: 20%;
+  right: 2rem;
+  width: 250px;
+  max-height: 60vh;
+  background: var(--color-bg);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  z-index: 100;
+  overflow-y: auto;
+  display: none;
+}
+
+.toc-sidebar.visible {
+  display: block;
+}
+
+.toc-sidebar h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  color: var(--color-primary);
+  border-bottom: 2px solid var(--color-primary);
+  padding-bottom: 0.5rem;
+}
+
+.toc-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.toc-list li {
+  margin: 0;
+  padding: 0;
+}
+
+.toc-list a {
+  display: block;
+  padding: 0.4rem 0;
+  color: var(--color-text);
+  text-decoration: none;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  border-left: 3px solid transparent;
+  padding-left: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.toc-list a:hover {
+  color: var(--color-primary);
+  border-left-color: var(--color-accent);
+  background-color: rgba(68, 205, 213, 0.1);
+}
+
+.toc-list a.active {
+  color: var(--color-primary);
+  border-left-color: var(--color-primary);
+  background-color: rgba(97, 75, 195, 0.1);
+  font-weight: 600;
+}
+
+// TOC 계층 구조
+.toc-list .toc-h2 {
+  padding-left: 0.5rem;
+}
+.toc-list .toc-h3 {
+  padding-left: 1rem;
+  font-size: 0.85rem;
+}
+.toc-list .toc-h4 {
+  padding-left: 1.5rem;
+  font-size: 0.8rem;
+}
+.toc-list .toc-h5 {
+  padding-left: 2rem;
+  font-size: 0.75rem;
+}
+.toc-list .toc-h6 {
+  padding-left: 2.5rem;
+  font-size: 0.75rem;
+}
+
+// TOC 토글 버튼
+.toc-toggle {
+  position: fixed;
+  top: 50%;
+  right: 1rem;
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  z-index: 101;
+  font-size: 1.2rem;
+  transition: all 0.3s ease;
+}
+
+.toc-toggle:hover {
+  background: var(--color-accent);
+  transform: scale(1.1);
+}
+
+.toc-toggle.hidden {
+  display: none;
+}
+
 .archive-group th {
   text-align: start !important;
   padding-right: 0.5rem;
@@ -593,6 +707,20 @@ svg {
     font-size: 1.25rem;
     font-weight: 500;
     margin-bottom: 8px;
+  }
+
+  // 모바일에서 TOC 조정
+  .toc-sidebar {
+    right: 1rem;
+    width: 200px;
+    max-height: 50vh;
+    font-size: 0.85rem;
+  }
+
+  .toc-toggle {
+    width: 45px;
+    height: 45px;
+    font-size: 1rem;
   }
 }
 

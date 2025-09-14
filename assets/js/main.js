@@ -100,3 +100,122 @@ document.addEventListener("DOMContentLoaded", function() {
     }
   });
 });
+
+// TOC (목차) 기능
+document.addEventListener("DOMContentLoaded", function() {
+  const content = document.getElementById("content");
+  if (!content) return;
+
+  // 헤딩 요소들 찾기
+  const headings = content.querySelectorAll("h1, h2, h3, h4, h5, h6");
+  if (headings.length === 0) return;
+
+  // TOC 컨테이너 생성
+  const toc_sidebar = document.createElement("div");
+  toc_sidebar.className = "toc-sidebar";
+  toc_sidebar.innerHTML = `
+    <h3>Table of Contents</h3>
+    <ul class="toc-list"></ul>
+  `;
+  document.body.appendChild(toc_sidebar);
+
+  // TOC 토글 버튼 생성
+  const toc_toggle = document.createElement("button");
+  toc_toggle.className = "toc-toggle";
+  toc_toggle.innerHTML = "📋";
+  toc_toggle.title = "Table of Contents";
+  document.body.appendChild(toc_toggle);
+
+  const toc_list = toc_sidebar.querySelector(".toc-list");
+  let toc_visible = false;
+
+  // 헤딩에 ID 추가 및 TOC 항목 생성
+  headings.forEach((heading, index) => {
+    // 헤딩에 고유 ID 추가
+    if (!heading.id) {
+      const heading_text = heading.textContent.trim();
+      const heading_id = `heading-${index}-${heading_text.toLowerCase()
+        .replace(/[^a-z0-9가-힣]/g, '-')
+        .replace(/-+/g, '-')
+        .replace(/^-|-$/g, '')}`;
+      heading.id = heading_id;
+    }
+
+    // TOC 항목 생성
+    const toc_item = document.createElement("li");
+    const toc_link = document.createElement("a");
+    toc_link.href = `#${heading.id}`;
+    toc_link.textContent = heading.textContent.trim();
+    toc_link.className = `toc-${heading.tagName.toLowerCase()}`;
+    
+    toc_item.appendChild(toc_link);
+    toc_list.appendChild(toc_item);
+
+    // 클릭 이벤트 추가
+    toc_link.addEventListener("click", function(e) {
+      e.preventDefault();
+      const target = document.getElementById(heading.id);
+      if (target) {
+        const offset_top = target.offsetTop - 100; // 헤더 높이 고려
+        window.scrollTo({
+          top: offset_top,
+          behavior: "smooth"
+        });
+        
+        // 활성 상태 업데이트
+        update_active_toc(toc_link);
+      }
+    });
+  });
+
+  // TOC 토글 기능
+  toc_toggle.addEventListener("click", function() {
+    toc_visible = !toc_visible;
+    if (toc_visible) {
+      toc_sidebar.classList.add("visible");
+      toc_toggle.innerHTML = "✖️";
+    } else {
+      toc_sidebar.classList.remove("visible");
+      toc_toggle.innerHTML = "📋";
+    }
+  });
+
+  // 스크롤 시 활성 헤딩 추적
+  function update_active_toc(active_link) {
+    // 모든 TOC 링크에서 active 클래스 제거
+    const all_toc_links = toc_list.querySelectorAll("a");
+    all_toc_links.forEach(link => link.classList.remove("active"));
+    
+    // 현재 링크에 active 클래스 추가
+    if (active_link) {
+      active_link.classList.add("active");
+    }
+  }
+
+  // 스크롤 이벤트로 현재 섹션 하이라이트
+  let scroll_timeout;
+  window.addEventListener("scroll", function() {
+    clearTimeout(scroll_timeout);
+    scroll_timeout = setTimeout(() => {
+      const scroll_pos = window.scrollY + 150;
+      let current_heading = null;
+
+      headings.forEach(heading => {
+        if (heading.offsetTop <= scroll_pos) {
+          current_heading = heading;
+        }
+      });
+
+      if (current_heading) {
+        const current_link = toc_list.querySelector(`a[href="#${current_heading.id}"]`);
+        update_active_toc(current_link);
+      }
+    }, 100);
+  });
+
+  // 초기 활성 상태 설정
+  if (headings.length > 0) {
+    const first_link = toc_list.querySelector("a");
+    update_active_toc(first_link);
+  }
+});
