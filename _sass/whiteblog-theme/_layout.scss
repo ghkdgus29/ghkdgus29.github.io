@@ -284,6 +284,8 @@ a#blog-title:focus::before {
 .post {
   padding: 3rem 0 6rem;
   width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
 }
 
 #posts-navigation {
@@ -326,6 +328,7 @@ p {
 
 .text-justify {
   margin-top: 2.1875rem;
+  line-height: 1.7;
 }
 
 .text-final {
@@ -518,6 +521,15 @@ svg {
 
   .container {
     padding: 0 1rem;
+  }
+
+  .post {
+    max-width: 100%;
+    padding: 2rem 1rem 4rem;
+  }
+
+  .text-justify {
+    padding: 0;
   }
 
   h1 {
