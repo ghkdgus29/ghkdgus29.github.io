@@ -49,3 +49,54 @@ let navBarToggle = document.getElementById("js-nav-toggle");
 navBarToggle.addEventListener("click", function() {
   mainNav.classList.toggle("active");
 });
+
+// 이미지 모달 기능
+document.addEventListener("DOMContentLoaded", function() {
+  // 모든 콘텐츠 내 이미지에 클릭 이벤트 추가
+  const content_images = document.querySelectorAll("#content img");
+  
+  // 모달 HTML 생성
+  const modal = document.createElement("div");
+  modal.className = "image-modal";
+  modal.innerHTML = `
+    <span class="close">&times;</span>
+    <img src="" alt="">
+  `;
+  document.body.appendChild(modal);
+  
+  const modal_img = modal.querySelector("img");
+  const close_btn = modal.querySelector(".close");
+  
+  // 각 이미지에 클릭 이벤트 추가
+  content_images.forEach(img => {
+    img.addEventListener("click", function() {
+      modal.style.display = "block";
+      modal_img.src = this.src;
+      modal_img.alt = this.alt;
+      document.body.style.overflow = "hidden"; // 스크롤 방지
+    });
+  });
+  
+  // 모달 닫기 기능
+  function close_modal() {
+    modal.style.display = "none";
+    document.body.style.overflow = "auto"; // 스크롤 복원
+  }
+  
+  // 닫기 버튼 클릭
+  close_btn.addEventListener("click", close_modal);
+  
+  // 모달 배경 클릭
+  modal.addEventListener("click", function(e) {
+    if (e.target === modal) {
+      close_modal();
+    }
+  });
+  
+  // ESC 키로 모달 닫기
+  document.addEventListener("keydown", function(e) {
+    if (e.key === "Escape" && modal.style.display === "block") {
+      close_modal();
+    }
+  });
+});
