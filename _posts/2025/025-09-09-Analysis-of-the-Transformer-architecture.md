@@ -115,15 +115,14 @@ Storing the key and value in this way is called KV Cache.
 
 <br>
 
-## Memo on Masks
-_This part is not accurate and needs to be supplemented with further study later._
+### Mask
+The decoder must have an auto-regressive property, feeding its previous outputs back as inputs to generate responses. Therefore, tokens earlier in the sequence should not be influenced by tokens that come later.
+In other words, the attention values of preceding tokens must not be altered by subsequent tokens.
 
-I understood that the `Mask` is used in the training process within the decoder block.
-The decoder must have an auto-regressive property, where it continuously produces results by feeding its previous output back as input.
-However, the training dataset will have the complete correct answer that the decoder is supposed to output.
 
-Therefore, for the decoder to generate the nth token, it should only see tokens from 0 to n-1. To prevent it from "cheating" by looking at future tokens, such as the (n+1)th token and beyond, I understood that the values from the (n+1)th token onwards are masked to negative infinity, effectively hiding them so they cannot be used in training. 
-I believe I will understand this better with a deeper knowledge of the LLM learning process.
+To achieve this, the dot product with the keys of future tokens is deliberately masked with negative infinity, preventing later tokens from having any effect. In summary, to generate the n-th token, the decoder only considers tokens from position 0 to n.
+
+![mask block](/assets/images/posts/250919.png)
 
 <br>
 
@@ -139,3 +138,4 @@ The Transformer has made advancements in two major aspects compared to RNN and L
 # Source 
 - [Transformer Neural Networks, ChatGPT's foundation, Clearly Explained!!!](https://www.youtube.com/watch?v=zxQyTK8quyY&t=1550s)
 - [Attention Is All You Need](/assets/attachments/attention_is_all_you_need.pdf)
+- [지연 시간 순삭! LLM 추론 구조와 효율적 애플리케이션 설계 / if(kakaoAI)2024](https://tech.kakaoent.com/tech/ifkakao-2024-llm/)
