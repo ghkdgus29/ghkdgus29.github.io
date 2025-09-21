@@ -525,6 +525,9 @@ li {
 }
 
 // TOC 계층 구조
+.toc-list .toc-h1 {
+  padding-left: 0rem;
+}
 .toc-list .toc-h2 {
   padding-left: 0.5rem;
 }
