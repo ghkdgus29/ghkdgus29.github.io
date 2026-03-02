@@ -60,8 +60,9 @@ class MyProcessingNode:
 
 <br>
 
-기존 방식은 크게 두 가지 문제점이 있다. <br>
-첫째, state 직렬화가 필요한 인스턴스, 함수들에게 `state_serializer` 함수를 빠짐없이 넘겨주어야 하고, 직렬화를 수행하는 인스턴스에선 특정 필드들에 특화된 `state_serializer`를 반드시 호출한 후에 standard serialization을 수행해야 한다는 불편함이 있다. (e.g. `json.dump`) <br> 
+기존 방식은 크게 두 가지 문제점이 있다. 
+첫째, state 직렬화가 필요한 인스턴스, 함수들에게 `state_serializer` 함수를 빠짐없이 넘겨주어야 하고, 직렬화를 수행하는 인스턴스에선 특정 필드들에 특화된 `state_serializer`를 반드시 호출한 후에 standard serialization을 수행해야 한다는 불편함이 있다. (e.g. `json.dump`) 
+
 둘째, state의 필드들을 제일 잘 아는 전문가는 state이다. 그럼에도 불구하고, state의 특정 필드들에 특화된 `state_serializer`를 구현하는 부분이 state 내부가 아닌 이곳 저곳에 산재해 있다는 문제가 있다. 
 
 <br>
@@ -154,20 +155,16 @@ class MyState(BaseModel):
 
 `BaseModel`을 상속받음으로써, pydantic model state를 생성할 수 있다. 
 
-<br>
-
 
 `model_config = ConfigDict(arbitrary_types_allowed=True)` <br>
 pydantic은 기본적으로 자체적으로 검증이 가능한 타입만 필드로 허용한다. 반면 `MyState`의 `error` 필드와 같은 일반 Python 클래스들 arbitrary type이다.
 만약 arbitrary type을 필드로 사용하고 싶다면, `arbitrary_types_allowed=True` 옵션을 주어야 한다.
 
-<br>
 
 `Annotated[list[HumanMessage | AIMessage], Field(exclude=True)]` <br>
 `Annotated`를 사용하여 타입힌트와 필드에 대한 메타 데이터를 하나로 합칠 수 있다. pydantic model은 `model_dump` 메서드를 호출하여 일관된 방식으로 직렬화 할 수 있다.
 `Field(exclude=True)`를 메타 데이터로 갖는 필드는 `model_dump` 직렬화 시 해당 필드를 제외한다.
 
-<br>
 
 `@field_serializer("error")` <br>
 `model_dump` 메서드를 호출하여 직렬화 할 때, 특정 필드의 직렬화 방식을 원하는 방법으로 재정의할 수 있다. 
@@ -209,7 +206,7 @@ state를 사용할 때 코드 에디터의 code completion의 도움을 받아 s
 <br>
 
 ## LangGraph pydantic state 규칙 
-1. Graph내의 노드들은 pydantic model state에 대해 Runtime validation을 수행하지 않는다.  
+### 1. Graph내의 노드들은 pydantic model state에 대해 Runtime validation을 수행하지 않는다.  
 
 즉, Runtime validation은 Graph 내의 노드들에서 매번 발생하는 것이 아니라, Graph에 넣어줄 최초 input state를 만들 때 발생한다. 
 따라서, 노드내의 input state나 output 값은 반드시 pydantic model state를 받고, 반환해야 하는 것은 아니다. 
@@ -280,7 +277,7 @@ result = app.invoke({"name": "Hyun", "age": 20})
 
 <br>
 
-2. 각 노드의 반환값은 기존 state를 덮어쓴다.  
+### 2. 각 노드의 반환값은 기존 state를 덮어쓴다.  
 
 더 정확히 말하면, 그래프 생성 시 넘겨준 스키마에 노드의 반환값을 넣고 다음 노드로 전달될 state를 생성한다. 
 
@@ -315,14 +312,10 @@ def _coerce_state(schema: type[Any], input: dict[str, Any]) -> dict[str, Any]:
 
 그래프를 컴파일하는 시점에 각 노드들을 연결하면서 `_pick_mapper` 함수를 호출하여, 다음 노드에 건너줄 state를 생성하는 mapper 함수를 `CompiledStateGraph`에 등록한다. 이때, 노드의 output값이 스키마와 다른 경우 `_coerce_state` 함수가 mapper 함수로 등록된다 
 
-<br>
-
-`schema`는 그래프 생성 시 인자로 넘겨준 schema로 pydantic state를 사용하는 경우, pydantic state 클래스를 나타낸다. <br>
+`schema`는 그래프 생성 시 인자로 넘겨준 schema로 pydantic state를 사용하는 경우, pydantic state 클래스를 나타낸다. <br> 
 위 예시에선, `schema`는 `MyState` 클래스를, `input`은 기존 state값에 노드의 반환값을 merge 한 딕셔너리 데이터를 나타낸다.
 이때, `input`의 경우 그래프 스키마에 존재하는 필드들만 가지고 있으므로, 노드의 반환값에 스키마에 존재하지 않는 필드가 있다면 포함되지 않고 그냥 버려진다.
 또한, 기존 state와 노드의 반환값이 서로 겹치는 key값을 갖는다면 노드의 반환값이 우선권을 가져 업데이트 된다.
-
-<br>
 
 결과적으로, `schema(**input)`은 새로운 pydantic state 인스턴스를 생성하는 것과 동일하다. pydantic model 인스턴스 생성 규칙에 따라 pydantic schema에 어긋나는 타입으로 값을 할당하는 경우 pydantic validation error를 발생시킨다. 
 
@@ -371,7 +364,7 @@ result = app.invoke({"name": "Hyun", "age": 20})
 
 <br>
 
-3. 그래프의 반환 값은 pydantic model이 아니다. 
+### 3. 그래프의 반환 값은 pydantic model이 아니다. 
 
 이 말은 곧, 마지막 노드의 반환값 역시 pydantic model을 만들기 위한 mapper 함수에 넘겨지지 않으므로 마지막 노드의 반환값은 그래프 스키마의 타입을 고려하지 않고, validation error도 발생하지 않는다.  
 
@@ -412,10 +405,9 @@ print(result)  # {'name': 123, 'age': 20}
 <br>
 
 ## state 메타 클래스 정의 
-pydantic은 필드 선언 시, 필드에 대한 정보를 `__pydantic_fields__`에 보관한다. 즉, class attribute로 저장하지 않기 때문에, pydantic model 클래스 Object는 `__dict__`에 아무것도 가지지 않는다. 따라서 `pydantic model 클래스.필드명`으로 표현되는 attribute lookup은 실패하게 된다. <br>
-인스턴스의 attribute lookup이 실패하면 클래스 Object의 `__getattr__`을 호출하고, 클래스 Object의 attribute lookup이 실패하면 메타 클래스 Object의 `__getattr__`을 호출한다.
+pydantic은 필드 선언 시, 필드에 대한 정보를 `__pydantic_fields__`에 보관한다. 즉, class attribute로 저장하지 않기 때문에, pydantic model 클래스 Object는 `__dict__`에 아무것도 가지지 않는다. 따라서 `pydantic model 클래스.필드명`으로 표현되는 attribute lookup은 실패하게 된다.
 
-<br>
+인스턴스의 attribute lookup이 실패하면 클래스 Object의 `__getattr__`을 호출하고, 클래스 Object의 attribute lookup이 실패하면 메타 클래스 Object의 `__getattr__`을 호출한다.
 
 정리하면, pydantic model 클래스 Object는 class attribute를 가지지 않는다는 특징과 클래스 Object의 attribute lookup이 실패하면 메타 클래스 Object의 `__getattr__`을 호출한다는 특징 두 가지를 사용하여 pydantic model state의 필드명을 가져오는 로직을 구현하였다. 
 

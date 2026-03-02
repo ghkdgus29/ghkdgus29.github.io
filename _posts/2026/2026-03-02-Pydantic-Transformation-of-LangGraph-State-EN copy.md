@@ -154,17 +154,11 @@ class MyState(BaseModel):
 
 By inheriting from `BaseModel`, a Pydantic model state can be created.
 
-<br>
-
 `model_config = ConfigDict(arbitrary_types_allowed=True)` <br> 
 By default, Pydantic only allows fields with types it can validate itself. On the other hand, general Python classes like the `error` field in `MyState` are considered arbitrary types. If you want to use an arbitrary type as a field, you must provide the `arbitrary_types_allowed=True` option.
 
-<br>
-
 `Annotated[list[HumanMessage | AIMessage], Field(exclude=True)]` <br>
 You can combine type hints and field metadata into one using `Annotated`. Pydantic models can be serialized in a consistent manner by calling the `model_dump` method. Fields that have `Field(exclude=True)` as metadata are excluded when performing `model_dump` serialization.
-
-<br>
 
 `@field_serializer("error")`  <br>
 When serializing by calling the `model_dump` method, you can override the serialization method for a specific field with your desired approach.
@@ -208,7 +202,7 @@ When using the state, you can easily access its internal fields with the help of
 
 ## LangGraph Pydantic State Rules
 
-1. Nodes within the Graph do not perform runtime validation on the Pydantic model state.
+### 1. Nodes within the Graph do not perform runtime validation on the Pydantic model state.
 
 In other words, runtime validation does not occur every time within the nodes of the Graph, but rather when creating the initial input state provided to the Graph. Therefore, the input state or output values within a node do not necessarily have to receive or return a Pydantic model state.
 
@@ -278,7 +272,7 @@ Furthermore, since LangGraph operates based on the `MyState` schema provided dur
 
 <br>
 
-2. The return value of each node overwrites the existing state.
+### 2. The return value of each node overwrites the existing state.
 
 More precisely, the node's return value is mapped onto the graph's schema to build the state for the next node in the graph.
 
@@ -313,14 +307,12 @@ def _coerce_state(schema: type[Any], input: dict[str, Any]) -> dict[str, Any]:
 
 When compiling the graph, the `_pick_mapper` function is called as each node is connected to register a mapper function in the `CompiledStateGraph` that generates the state to be passed to the next node. If a node's output value differs from the schema, the `_coerce_state` function is registered as the mapper function.
 
-<br>
 
 `schema` refers to the schema passed as an argument during graph creation; when using a Pydantic state, it represents the Pydantic state class.
 In the example above, `schema` represents the `MyState` class, and `input` represents dictionary data formed by merging the node's return value into the existing state.
 In this case, since `input` only contains fields that exist in the graph schema, any fields in the node's return value that do not exist in the schema are excluded and discarded.
 Furthermore, if the existing state and the node's return value have overlapping keys, the node's return value takes priority and updates the state.
 
-<br>
 
 Consequently, `schema(**input)` is equivalent to creating a new Pydantic state instance. Following the Pydantic model instance creation rules, a Pydantic validation error is raised if a value is assigned with a type that violates the Pydantic schema.
 
@@ -367,7 +359,7 @@ result = app.invoke({"name": "Hyun", "age": 20})
 
 <br>
 
-3. The graph's return value is not a Pydantic model.
+### 3. The graph's return value is not a Pydantic model.
 
 This means that the return value of the final node is not passed to the mapper function used to create a Pydantic model. Consequently, the final node's return value does not account for the graph schema's types, and no validation error occurs.
 
@@ -413,8 +405,6 @@ To update the state within a graph, each node's return value must be a dictionar
 When fields are declared in Pydantic, the information about those fields is stored in `__pydantic_fields__`. Since they are not stored as class attributes, the Pydantic model class object contains nothing in its `__dict__`. Consequently, an attribute lookup represented by `PydanticModelClass.field_name` will fail.
 
 When an instance's attribute lookup fails, the class object's `__getattr__` is called; if the class object's attribute lookup fails, the metaclass object's `__getattr__` is called.
-
-<br>
 
 In summary, I implemented the logic to retrieve the field names of the Pydantic model state by leveraging two characteristics: that the Pydantic model class object does not hold class attributes for its fields, and that a failed attribute lookup on a class object triggers the metaclass object's `__getattr__`.
 
@@ -464,7 +454,7 @@ When attempting to access the `answer` field after retrieving the state's class 
 
 <br>
 
-> Source 
+> References 
 > - https://docs.pydantic.dev/latest/api/config/#pydantic.config.ConfigDict.arbitrary_types_allowed
 > - https://docs.langchain.com/oss/python/langgraph/use-graph-api#use-pydantic-models-for-graph-state
 > - https://github.com/pydantic/pydantic/discussions/8600

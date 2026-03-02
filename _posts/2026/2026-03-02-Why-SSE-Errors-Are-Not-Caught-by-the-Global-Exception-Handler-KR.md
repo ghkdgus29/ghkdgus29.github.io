@@ -169,9 +169,10 @@ class StreamingResponse(Response):
 
 <br>
 
-`StreamingResponse`는 task_group에 `self.stream_response`와 `self.listen_for_disconnect` 두 Task를 할당한다. `self.stream_response`는 chunk streaming을, `self.listen_for_disconnect`는 클라이언트의 연결 끊김을 감지하는 메서드이다. 두 Task는 거의 동시에 실행되며 둘 중 하나의 Task가 먼저 끝나게 되면 `wrap` function의 `task_group.cancel_scope.cancel()`을 호출하여 나머지 Task에 `CancelledError`를 주입함으로써, 작업 진행을 중지한다. <br>
+`StreamingResponse`는 task_group에 `self.stream_response`와 `self.listen_for_disconnect` 두 Task를 할당한다. `self.stream_response`는 chunk streaming을, `self.listen_for_disconnect`는 클라이언트의 연결 끊김을 감지하는 메서드이다. 두 Task는 거의 동시에 실행되며 둘 중 하나의 Task가 먼저 끝나게 되면 `wrap` function의 `task_group.cancel_scope.cancel()`을 호출하여 나머지 Task에 `CancelledError`를 주입함으로써, 작업 진행을 중지한다.
+
 즉, SSE 응답을 정상적으로 완료하는 경우 `self.stream_response` 가 완료되어 클라이언트 연결 끊김을 감지하는 `self.listen_for_disconnect` Task를 종료시킨다. 
-반대로, SSE 응답 도중 클라이언트의 연결 끊김을 감지하면 `self.listen_for_disconnect` Task는 무한 루프를 탈출 후 작업을 완료하여, chunk streaming을 진행하는 `self.stream_response` Task를 종료시킨다. <br>
+반대로, SSE 응답 도중 클라이언트의 연결 끊김을 감지하면 `self.listen_for_disconnect` Task는 무한 루프를 탈출 후 작업을 완료하여, chunk streaming을 진행하는 `self.stream_response` Task를 종료시킨다. 
 
 
 <br>
@@ -195,7 +196,8 @@ class StreamingResponse(Response):
 ```
 > `StreamingResponse`의 `stream_response` 메서드
 
-chunk streaming의 몇 가지 특징을 살펴볼 수 있다. 우선, http 200 OK 응답 헤더를 먼저 보내고 chunk streaming을 시작함을 확인할 수 있다. <br>
+chunk streaming의 몇 가지 특징을 살펴볼 수 있다. 우선, http 200 OK 응답 헤더를 먼저 보내고 chunk streaming을 시작함을 확인할 수 있다. 
+
 chunk 응답을 내려주기 위해 순회하는 `self.body_iterator`는 앞서 라우터 핸들러 함수가 서비스 레이어를 호출하여 얻어낸 async generator이다. 즉, async generator는 FastAPI가 관리하는 영역을 벗어나 Starlette의 영역에서 호출된다. 
 
 <br>
