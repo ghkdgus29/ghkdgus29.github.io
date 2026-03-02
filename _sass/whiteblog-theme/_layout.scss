@@ -370,8 +370,31 @@ blockquote p {
   padding: 1.75rem 1rem;
   margin: 0.3125rem 0;
   position: relative;
-  overflow: auto;
-  white-space: pre-wrap;
+  overflow-x: auto;
+  white-space: pre;
+}
+
+.highlight pre code {
+  word-wrap: normal;
+  white-space: pre;
+}
+
+.highlight pre::-webkit-scrollbar {
+  height: 6px;
+}
+
+.highlight pre::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.highlight pre::-webkit-scrollbar-thumb {
+  background: var(--color-primary);
+  border-radius: 3px;
+}
+
+.highlight pre {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-primary) transparent;
 }
 
 .highlight pre button {
