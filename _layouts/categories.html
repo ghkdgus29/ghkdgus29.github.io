@@ -21,7 +21,7 @@ title: Categories
       <table>
         {% for post in site.categories[category_name] %}
         <tr data-lang="{{ post.lang | default: 'en' }}">
-          <th>
+          <th style="white-space: nowrap">
             (<time
               datetime="{{ post.date | date_to_xmlschema }}"
               class="post-date"
