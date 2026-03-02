@@ -101,38 +101,98 @@ document.addEventListener("DOMContentLoaded", function() {
   });
 });
 
-// 언어 토글 기능
+// 언어 설정 (메뉴 레벨)
 document.addEventListener("DOMContentLoaded", function() {
-  const lang_toggle = document.querySelector(".lang-toggle");
-  if (!lang_toggle) return;
-
-  const current_lang = lang_toggle.dataset.currentLang;
-  const lang_ref = lang_toggle.dataset.langRef;
   const PREF_KEY = "langPref";
+  const DEFAULT_LANG = "en";
 
-  // 저장된 언어 선호도가 현재 페이지와 다르면 자동 이동
-  const stored_pref = localStorage.getItem(PREF_KEY);
-  if (stored_pref && stored_pref !== current_lang && lang_ref) {
-    window.location.href = lang_ref;
-    return;
+  function get_lang() {
+    return localStorage.getItem(PREF_KEY) || DEFAULT_LANG;
   }
 
-  // 버튼 클릭 이벤트
-  lang_toggle.querySelectorAll(".lang-btn").forEach(btn => {
-    btn.addEventListener("click", function() {
-      const target_lang = this.dataset.lang;
-      localStorage.setItem(PREF_KEY, target_lang);
-      if (target_lang !== current_lang && lang_ref) {
-        window.location.href = lang_ref;
-      }
+  function apply_lang(lang) {
+    // 1. 네비게이션 토글 버튼 활성화 상태 업데이트
+    const nav_toggle = document.getElementById("nav-lang-toggle");
+    if (nav_toggle) {
+      nav_toggle.querySelectorAll(".lang-btn").forEach(btn => {
+        btn.classList.toggle("active", btn.dataset.lang === lang);
+      });
+    }
+
+    // 2. 포스트 목록 필터링 (home)
+    document.querySelectorAll("li[data-lang]").forEach(el => {
+      el.style.display = el.dataset.lang === lang ? "" : "none";
     });
-  });
+
+    // 3. 테이블 행 필터링 (allposts, categories)
+    document.querySelectorAll("tr[data-lang]").forEach(el => {
+      el.style.display = el.dataset.lang === lang ? "" : "none";
+    });
+
+    // 4. 연도 그룹 숨기기 (allposts)
+    document.querySelectorAll(".year-group").forEach(group => {
+      const has_visible = Array.from(group.querySelectorAll("tr[data-lang]"))
+        .some(tr => tr.dataset.lang === lang);
+      group.style.display = has_visible ? "" : "none";
+    });
+
+    // 5. 카테고리 그룹 숨기기
+    document.querySelectorAll(".archive-group").forEach(group => {
+      const has_visible = Array.from(group.querySelectorAll("tr[data-lang]"))
+        .some(tr => tr.dataset.lang === lang);
+      group.style.display = has_visible ? "" : "none";
+    });
+
+    // 6. 이전/다음 포스트 네비게이션 (post 페이지)
+    const nav_en = document.querySelector(".posts-nav-en");
+    const nav_kr = document.querySelector(".posts-nav-kr");
+    if (nav_en) nav_en.style.display = lang === "en" ? "" : "none";
+    if (nav_kr) nav_kr.style.display = lang === "kr" ? "" : "none";
+  }
+
+  // 포스트 페이지: 현재 언어와 선호도가 다르면 대응 언어 버전으로 이동
+  const post_lang_data = document.getElementById("post-lang-data");
+  if (post_lang_data) {
+    const current_lang = post_lang_data.dataset.currentLang;
+    const lang_ref = post_lang_data.dataset.langRef;
+    const stored_pref = get_lang();
+    if (stored_pref !== current_lang && lang_ref) {
+      window.location.href = lang_ref;
+      return;
+    }
+  }
+
+  // 초기 언어 적용
+  apply_lang(get_lang());
+
+  // 네비게이션 토글 버튼 클릭 이벤트
+  const nav_toggle = document.getElementById("nav-lang-toggle");
+  if (nav_toggle) {
+    nav_toggle.querySelectorAll(".lang-btn").forEach(btn => {
+      btn.addEventListener("click", function() {
+        const target_lang = this.dataset.lang;
+        localStorage.setItem(PREF_KEY, target_lang);
+
+        // 포스트 페이지에서 토글 시 대응 언어 버전으로 이동
+        if (post_lang_data) {
+          const current_lang = post_lang_data.dataset.currentLang;
+          const lang_ref = post_lang_data.dataset.langRef;
+          if (target_lang !== current_lang && lang_ref) {
+            window.location.href = lang_ref;
+            return;
+          }
+        }
+
+        apply_lang(target_lang);
+      });
+    });
+  }
 });
 
-// TOC (목차) 기능
+// TOC (목차) 기능 - 개별 포스트 페이지에서만 동작
 document.addEventListener("DOMContentLoaded", function() {
   const content = document.getElementById("content");
-  if (!content) return;
+  if (!content || !content.classList.contains("text-justify")) return;
 
   // 헤딩 요소들 찾기
   const headings = content.querySelectorAll("h1, h2, h3, h4, h5, h6");

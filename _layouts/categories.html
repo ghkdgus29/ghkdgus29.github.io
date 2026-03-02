@@ -20,8 +20,7 @@ title: Categories
       <a name="{{ category_name | slugize }}"></a>
       <table>
         {% for post in site.categories[category_name] %}
-        {% unless post.lang == 'kr' %}
-        <tr>
+        <tr data-lang="{{ post.lang | default: 'en' }}">
           <th>
             (<time
               datetime="{{ post.date | date_to_xmlschema }}"
@@ -37,7 +36,6 @@ title: Categories
             >
           </th>
         </tr>
-        {% endunless %}
         {% endfor %}
       </table>
     </div>

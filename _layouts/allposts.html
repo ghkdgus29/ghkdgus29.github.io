@@ -4,29 +4,31 @@ layout: page
 
 {{ content }}
 
-{% assign visible_posts = site.posts | where_exp: "post", "post.lang != 'kr'" %}
-{% for post in visible_posts %}
+{% assign all_posts = site.posts %}
+{% assign prev_year = "" %}
+{% for post in all_posts %}
 
   {% capture year %}{{ post.date | date: '%Y' }}{% endcapture %}
 
   {% if forloop.first %}
+    <div class="year-group">
     <h2>{{ year }}</h2>
     <table>
   {% elsif year != prev_year %}
-    </table>
+    </table></div>
+    <div class="year-group">
     <h2>{{ year }}</h2>
     <table>
   {% endif %}
 
-  {% assign date_format = default: "%b %-d" %}
-  <tr>
-    <td><time datetime="{{ post.date | date:"%Y-%m-%d" }}">{{ post.date | date: date_format }}</time></td>
+  <tr data-lang="{{ post.lang | default: 'en' }}">
+    <td><time datetime="{{ post.date | date: "%Y-%m-%d" }}">{{ post.date | date: "%b %-d" }}</time></td>
     <td>|</td>
     <td><a href="{{ post.url | prepend: site.baseurl }}">{{ post.title }}</a></td>
   </tr>
 
   {% if forloop.last %}
-    </table>
+    </table></div>
   {% endif %}
 
   {% capture prev_year %}{{ year }}{% endcapture %}

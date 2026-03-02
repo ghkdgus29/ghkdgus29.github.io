@@ -10,8 +10,7 @@ layout: default
     <ul class="preview">
       {% assign date_format = "%b %-d, %Y" %}
       {% for post in posts %}
-        {% unless post.lang == 'kr' %}
-        <li class="post-resume">
+        <li class="post-resume" data-lang="{{ post.lang | default: 'en' }}">
           <h1 class="post-resume-title">
             <a class="post-title" href="{{ post.url | relative_url }}">
               <span class="underline">{{ post.title | escape }}</span>
@@ -23,7 +22,6 @@ layout: default
             {{ post.excerpt }}
           </div>
         </li>
-        {% endunless %}
       {% endfor %}
     </ul>
 

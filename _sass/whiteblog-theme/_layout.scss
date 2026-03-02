@@ -83,6 +83,11 @@ main {
   flex-wrap: nowrap;
 }
 
+.navbar-links {
+  display: flex;
+  align-items: center;
+}
+
 .navbar-links > * {
   margin-right: 10px;
 }
@@ -224,6 +229,12 @@ a#blog-title:focus::before {
 .navbar-toggler:not(.collapsed) .bottom-bar {
   transform: rotate(-45deg);
   transform-origin: 10% 90%;
+}
+
+#navbar-nav {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
 }
 
 #navbar-nav a {
@@ -466,6 +477,11 @@ li {
   overflow: hidden;
   margin-top: 0.5rem;
   margin-bottom: 0.25rem;
+}
+
+#nav-lang-toggle {
+  margin: 0;
+  flex-shrink: 0;
 }
 
 .lang-btn {
