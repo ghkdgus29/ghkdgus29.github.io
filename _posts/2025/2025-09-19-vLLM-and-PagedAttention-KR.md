@@ -3,7 +3,7 @@ layout: post
 author: Hyun 
 title: vLLM과 PagedAttention 
 date:   2025-09-19 21:12:00 +0000
-excerpt: "LLM serving with Hugging Face is slow since it’s not optimized for production use. External API calls risk data leakage, so the company serves open-source LLMs on in-house GPUs. The main bottleneck is GPU memory, especially the KV Cache, which grows with input and output tokens (e.g., OPT-13B uses ~1.6 GB per request). Traditional serving frameworks use request-level batching, but this causes blocking and padding inefficiencies; fine-grained batching fixes these but still suffers from memory fragmentation. vLLM introduces PagedAttention, splitting KV Cache into fixed blocks to remove fragmentation and allow block sharing. It supports basic decoding and parallel sampling via copy-on-write. With FCFS scheduling, evicted KV is restored by either swapping to CPU memory or recomputation. Overall, LLM serving performance is memory-bound, and vLLM improves throughput by optimizing KV Cache usage rather than relying on larger GPUs."
+excerpt: "vLLM과 PagedAttention"
 categories:
  - Research
  - vLLM

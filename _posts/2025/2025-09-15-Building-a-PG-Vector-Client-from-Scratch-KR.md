@@ -3,7 +3,7 @@ layout: post
 author: Hyun 
 title: PG Vector 클라이언트 직접 만들기 
 date:   2025-09-15 21:12:00 +0000
-excerpt: "This post introduces a custom PGVector client designed to store and query vector data in an RDB-friendly way—unlike LangChain’s default client, which uses a NoSQL-like schema."
+excerpt: "PG Vector 클라이언트 직접 만들기"
 categories:
  - Engineering
  - VectorDB

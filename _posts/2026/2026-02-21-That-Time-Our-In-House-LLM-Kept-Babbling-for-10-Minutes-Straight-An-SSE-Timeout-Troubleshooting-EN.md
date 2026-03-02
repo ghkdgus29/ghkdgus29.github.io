@@ -3,7 +3,7 @@ layout: post
 author: Hyun 
 title: That Time Our In-House LLM Kept Babbling for 10 Minutes Straight| An SSE Timeout Troubleshooting Story
 date:   2026-02-21 10:20:00 +0900
-excerpt: "Standard asyncio.timeout fails in LangChain streaming because the framework creates new tasks for every chunk, causing the timeout manager to lose track of the overall process. This solution manually tracks the cumulative elapsed time for each chunk and triggers a TimeoutError the moment the total response duration exceeds the limit, effectively reclaiming GPU resources."
+excerpt: "SSE Timeout Troubleshooting and asyncio.timeout Internal Structure Analysis"
 categories:
  - Engineering
  - LangChain

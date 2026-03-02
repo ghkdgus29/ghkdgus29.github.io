@@ -3,7 +3,7 @@ layout: post
 author: Hyun 
 title: Analysis of the Transformer architecture 
 date:   2025-09-09 21:12:00 +0000
-excerpt: "The Transformer architecture, introduced in the 2017 paper Attention Is All You Need, revolutionized natural language processing by addressing the limitations of RNNs and LSTMs. It introduced key innovations such as positional encoding and self-attention, enabling efficient parallel computation and the ability to capture long-range dependencies in sentences. These advancements have made the Transformer the foundation of modern large language models like GPT and LLaMA, driving faster training speeds and improved performance in NLP tasks."
+excerpt: "Analysis of the Transformer architecture"
 categories:
  - Research
  - Transformer
