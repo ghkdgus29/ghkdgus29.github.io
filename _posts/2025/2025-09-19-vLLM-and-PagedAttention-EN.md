@@ -8,6 +8,8 @@ categories:
  - Research
  - vLLM
  - AI
+lang: en
+lang_ref: /vLLM-and-PagedAttention-KR/
 ---
 
 # LLM Serving Libraries
@@ -202,5 +204,5 @@ While GPU compute speed doubles with each new generation, GPU memory capacity st
 <br>
 
 # References
-[Efficient Memory Management for Large Language Model Serving](/assets//attachments/vllm_paper.pdf)
+[Efficient Memory Management for Large Language Model Serving](/assets/attachments/vllm_paper.pdf)
 

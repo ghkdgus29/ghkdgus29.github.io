@@ -8,6 +8,8 @@ categories:
  - Research
  - Transformer
  - AI
+lang: en
+lang_ref: /Analysis-of-the-Transformer-architecture-KR/
 ---
 
 # Natural Language Processing and the Transformer Architecture

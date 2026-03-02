@@ -9,6 +9,8 @@ categories:
  - VectorDB
  - Python
  - AI
+lang: en
+lang_ref: /Building-a-PG-Vector-Client-from-Scratch-KR/
 ---
 
 
