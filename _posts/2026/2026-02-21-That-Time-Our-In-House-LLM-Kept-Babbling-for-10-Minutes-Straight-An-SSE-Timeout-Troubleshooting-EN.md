@@ -65,7 +65,7 @@ class ChatVllm(ChatOpenAI):
 
         self.stream_timeout = kwargs.get("timeout", None)
 
-    async def _astream(     # TODO: timeout 로직 적용! 
+    async def _astream(     # TODO: apply timeout logic 
         self, *args: Any, **kwargs: Any
     ) -> AsyncIterator[ChatGenerationChunk]:
         async for chunk in super()._astream(*args, **kwargs):
