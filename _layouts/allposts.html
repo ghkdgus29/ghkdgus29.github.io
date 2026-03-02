@@ -4,7 +4,8 @@ layout: page
 
 {{ content }}
 
-{% for post in site.posts %}
+{% assign visible_posts = site.posts | where_exp: "post", "post.lang != 'kr'" %}
+{% for post in visible_posts %}
 
   {% capture year %}{{ post.date | date: '%Y' }}{% endcapture %}
 

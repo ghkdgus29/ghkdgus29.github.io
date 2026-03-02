@@ -1,17 +1,26 @@
 ---
 layout: default
 ---
+{% assign visible_posts = site.posts | where_exp: "post", "post.lang != 'kr'" %}
+{% for p in visible_posts %}
+  {% if p.url == page.url %}{% assign cur_idx = forloop.index %}{% endif %}
+{% endfor %}
+{% if cur_idx %}
+  {% if cur_idx >= 2 %}{% assign newer_idx = cur_idx | minus: 2 %}{% assign nav_next = visible_posts[newer_idx] %}{% endif %}
+  {% assign total = visible_posts | size %}
+  {% if cur_idx < total %}{% assign nav_prev = visible_posts[cur_idx] %}{% endif %}
+{% endif %}
 <article class="post">
 
   <div id="posts-navigation" class="row">
     <div class="previous">
-      {% if page.previous.url %}
-        <a href="{{page.previous.url}}">&laquo; {{page.previous.title}}</a>
+      {% if nav_prev %}
+        <a href="{{ nav_prev.url }}">&laquo; {{ nav_prev.title }}</a>
       {% endif %}
     </div>
-    <div class="next">  
-      {% if page.next.url %}
-        <a href="{{page.next.url}}">{{page.next.title}} &raquo;</a>
+    <div class="next">
+      {% if nav_next %}
+        <a href="{{ nav_next.url }}">{{ nav_next.title }} &raquo;</a>
       {% endif %}
     </div>
   </div>
@@ -37,6 +46,12 @@ layout: default
       {% endfor %}
       </h5>
     </p>
+    {% if page.lang and page.lang_ref %}
+    <div class="lang-toggle" data-current-lang="{{ page.lang }}" data-lang-ref="{{ page.lang_ref }}">
+      <button class="lang-btn{% if page.lang == 'kr' %} active{% endif %}" data-lang="kr">KR</button>
+      <button class="lang-btn{% if page.lang == 'en' %} active{% endif %}" data-lang="en">EN</button>
+    </div>
+    {% endif %}
   </header>
 
   <div class="text-justify" id="content">

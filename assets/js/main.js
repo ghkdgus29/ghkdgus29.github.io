@@ -101,6 +101,34 @@ document.addEventListener("DOMContentLoaded", function() {
   });
 });
 
+// 언어 토글 기능
+document.addEventListener("DOMContentLoaded", function() {
+  const lang_toggle = document.querySelector(".lang-toggle");
+  if (!lang_toggle) return;
+
+  const current_lang = lang_toggle.dataset.currentLang;
+  const lang_ref = lang_toggle.dataset.langRef;
+  const PREF_KEY = "langPref";
+
+  // 저장된 언어 선호도가 현재 페이지와 다르면 자동 이동
+  const stored_pref = localStorage.getItem(PREF_KEY);
+  if (stored_pref && stored_pref !== current_lang && lang_ref) {
+    window.location.href = lang_ref;
+    return;
+  }
+
+  // 버튼 클릭 이벤트
+  lang_toggle.querySelectorAll(".lang-btn").forEach(btn => {
+    btn.addEventListener("click", function() {
+      const target_lang = this.dataset.lang;
+      localStorage.setItem(PREF_KEY, target_lang);
+      if (target_lang !== current_lang && lang_ref) {
+        window.location.href = lang_ref;
+      }
+    });
+  });
+});
+
 // TOC (목차) 기능
 document.addEventListener("DOMContentLoaded", function() {
   const content = document.getElementById("content");
