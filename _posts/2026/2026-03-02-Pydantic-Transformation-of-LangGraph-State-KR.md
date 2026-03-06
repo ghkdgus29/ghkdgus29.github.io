@@ -130,7 +130,7 @@ class MyNode:
         history = state[HISTORY]
         # ...
 ```
-> your_state 모듈의 TENANT_SID`를 사용하게 된다면 `KeyError` 발생
+> your_state 모듈의 `TENANT_SID`를 사용하게 된다면 `KeyError` 발생
 
 <br>
 
