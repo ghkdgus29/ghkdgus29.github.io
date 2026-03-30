@@ -2,7 +2,7 @@
 layout: post
 author: Hyun 
 title: A Deep Dive into Python Bytecode
-date:   2026-03-02 21:06:00 +0900
+date:   2026-03-30 16:57:00 +0900
 excerpt: "A Deep Dive into Python Bytecode"
 categories:
  - Engineering

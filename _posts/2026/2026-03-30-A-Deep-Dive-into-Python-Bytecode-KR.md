@@ -2,7 +2,7 @@
 layout: post
 author: Hyun 
 title: Python Bytecode 파헤치기
-date:   2026-03-02 21:06:00 +0900
+date:   2026-03-30 16:57:00 +0900
 excerpt: "Python Bytecode 파헤치기"
 categories:
  - Engineering
