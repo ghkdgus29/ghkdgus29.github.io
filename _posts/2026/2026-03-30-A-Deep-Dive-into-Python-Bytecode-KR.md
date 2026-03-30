@@ -322,6 +322,8 @@ Disassembly of <code object add at 0x000001670206DC50, file "test.py", line 1>:
 ```
 > add function이 호출될 때 마다 매번 실행되는 bytecode
 
+<br>
+
 ### LOAD_FAST_BORROW_LOAD_FAST_BORROW 1 (a, b)
 `LOAD_FAST_BORROW_LOAD_FAST_BORROW (var_nums)`
 
@@ -2040,6 +2042,8 @@ Disassembly of <code object greet at 0x10511dce0, file "main.py", line 5>:
               LOAD_CONST               2 (None)
               RETURN_VALUE
 ```
+
+<br>
 
 ### STORE_ATTR 0 (name)
 `STORE_ATTR (namei)`
