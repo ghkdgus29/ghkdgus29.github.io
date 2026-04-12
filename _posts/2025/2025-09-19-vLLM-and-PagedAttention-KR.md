@@ -173,11 +173,11 @@ Transformer 특성 상, 시퀸스의 모든 토큰에 동시에 접근한다. �
 ### 복원 전략
 크게 2가지 방법으로 나뉜다.
 
-1. Swapping
+1. Swapping <br>
 OS에서 전통적으로 사용하는 방법이다. OS에서는 evicted page를 디스크의 Swap Space로 추방시킨다. vLLM은 이와 비슷하게 evicted KV Cache Block을 CPU 메모리로 추방시킨다.
 이 경우, vLLM은 CPU 메모리로 추방된 시퀸스들이 모두 GPU 메모리로 돌아와 처리되기 전까지 새로운 요청을 받지 않는다. 요청이 끝나 GPU에 가용 메모리 공간이 생기면 CPU 공간에 위치한 시퀸스들을 GPU 메모리로 가져와 처리한다.
 
-2. Recomputation
+2. Recomputation <br>
 시퀸스의 KV를 다시 계산하여 캐싱하는 전략이다. 이전에 생성된 input token과 output token을 하나로 합쳐 KV를 계산함으로써 한 iteration에서 추방된 시퀸스의 KV Cache를 재생성한다. 
 
 기본적으로 Swapping과 Recomputation 성능에 영향을 주는 변수는 CPU RAM과 GPU 메모리 간 Bandwidth, GPU 연산 성능이다. 

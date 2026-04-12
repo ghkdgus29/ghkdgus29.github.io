@@ -183,10 +183,10 @@ The sequence chosen for eviction is the most recently arrived one, according to 
 
 ### Restoration Policy 
 There are two main strategies:
-1. Swapping 
+1. Swapping  <br>
 A traditional OS method. In OS, evicted pages are swapped out to disk. Similarly. vLLM swaps evicted KV Cache Blocks to CPU memory. In this case, vLLM does not accept new requests until all sequences swapped to CPU memory are brought back to GPU memory and processed.
 
-2. Recomputation
+2. Recomputation <br>
 Recomputes and re-caches the KV of a sequence.
 By combining previously generated input tokens and output tokens, the KV Cache for the evicted sequence is regenerated in a single iteration. 
 
