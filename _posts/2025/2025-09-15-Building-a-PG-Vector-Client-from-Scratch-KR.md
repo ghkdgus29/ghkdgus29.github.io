@@ -283,7 +283,7 @@ class PGVectorStore:
 <br>
 
 ### 문서 유사도 검색
-where절을 optional 파라미터로 받음으로써 어느정도 데이터를 필터링 한 후 유사도 검색을 할 수 있도록 구현하였다. 유사도 검색의 반환값은 `Document` 타입으로 통일되어 있다. 
+where절을 optional 파라미터로 받음으로써 유사도 검색이후 데이터를 추가적으로 필터링 할 수 있도록 구현하였다. 유사도 검색의 반환값은 `Document` 타입으로 통일되어 있다. 
 
 ```python
 class Document(TypedDict):
@@ -315,10 +315,10 @@ class Document(TypedDict):
             k,
             threshold,
             TempBoardEntity,
-            additional_where_clause,
+            additional_where_cl링use,
         )
 ```
-> 회사코드와 유저아이디로 데이터를 필터링 한 후, 유사도 검색
+> 유사도 검색 후 tenant code와 user ID로 데이터 필터링
 
 <br>
 

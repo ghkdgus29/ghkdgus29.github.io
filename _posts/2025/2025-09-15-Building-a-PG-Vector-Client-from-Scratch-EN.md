@@ -281,7 +281,7 @@ By enforcing the restriction that only entities can be stored, I intended to giv
 <br>
 
 ### Document Similarity Search
-By accepting the `where` clause as an optional parameter, the implementation allows filtering the data to some extent before performing similarity search.
+By accepting the where clause as an optional parameter, the implementation attempts to filter results after performing the similarity search.
 The return value of similarity search is unified as a `Document` type.
 
 ```python
@@ -316,7 +316,7 @@ Example client code for document search:
             additional_where_clause,
         )
 ```
-> Filter data by tenant code and user id, then run a similarity search.
+> Run a similarity search, then filter results by tenant code and user ID.
 
 <br>
 
