@@ -38,6 +38,8 @@ Without any port forwarding, the app is exposed externally only through Cloudfla
 
 # Building It
 
+<br>
+
 ## Installing Ubuntu Server
 Windows seemed inconvenient for a home server, and honestly, Linux just felt more fitting for the job. So I wiped Windows and installed Ubuntu Server instead.
 
@@ -47,11 +49,13 @@ With the USB plugged in, I powered on the laptop and hit F2 to enter the BIOS, w
 - disabled Secure Boot
 - changed Boot Priority so the USB boots first
 
-After saving and rebooting, the Ubuntu installer came up from the USB, and I just followed the wizard through to install Ubuntu.
+After saving and rebooting, the Ubuntu installer came up from the USB, and I just followed the on-screen instructions to install Ubuntu.
 
 <br>
 
 ## Basic Server Setup
+
+<br>
 
 ### Installing the SSH daemon
 ```bash
@@ -61,6 +65,8 @@ sudo systemctl enable --now ssh
 systemctl status ssh   # confirm active (running)
 ```
 
+<br>
+
 ### Allowing SSH through the firewall
 I planned to lock SSH down to Tailscale-only access later, but for now I opened it up for the initial connection.
 ```bash
@@ -69,11 +75,15 @@ sudo ufw allow OpenSSH
 
 After checking the home server's IP with `ip a`, I connected from my main MacBook with `ssh myaccount@homeserverIP` and did the rest of the work from there.
 
+<br>
+
 ### System update
 ```bash
 sudo apt update && sudo apt upgrade -y
 sudo reboot
 ```
+
+<br>
 
 ### Laptop power management
 Since I was using a laptop as a server, I needed it to not go to sleep when the lid was closed.
@@ -90,6 +100,8 @@ sudo systemctl mask sleep.target suspend.target hibernate.target hybrid-sleep.ta
 sudo systemctl restart systemd-logind
 ```
 
+<br>
+
 ### Switching to SSH key authentication
 I generated an SSH key pair on my main MacBook and sent the public key to the home server.
 ```bash
@@ -97,6 +109,8 @@ ssh-keygen -t ed25519 -f ~/.ssh/<key_name> -C "<key_comment>"
 ssh-copy-id -i ~/.ssh/<key_name>.pub myaccount@homeserverIP 
 ```
 > ssh-copy-id only works with an account that can still log in with a password.
+
+<br>
 
 ### Disabling SSH password login
 ```bash
@@ -294,12 +308,16 @@ push to main
   → (deploy) temporarily join the tailnet → SSH into the home server → pull the latest image & restart
 ```
 
+<br>
+
 ### Creating a dedicated deploy account
 Create a deploy account on the home server, dedicated to deployments.
 ```bash
 sudo useradd -m -s /bin/bash deploy
 sudo usermod -aG docker deploy
 ```
+
+<br>
 
 ### Generating and transferring a dedicated deploy SSH key
 Generate it on the MacBook, then send it to the home server.
@@ -308,6 +326,8 @@ ssh-keygen -t ed25519 -f ~/.ssh/<key_name> -C "<key_comment>"
 scp ~/.ssh/<key_name>.pub <my_account>@<server_ip>:~/key.pub
 ```
 > The deploy account has no password, so ssh-copy-id (used earlier) won't work here.
+
+<br>
 
 ### Registering the key with the deploy account
 The public key I just scp'd over is sitting in my own account's home directory for now — it has nothing to do with the deploy account yet. I need to register it in the deploy account's `authorized_keys` before GitHub Actions can actually SSH in as deploy.
@@ -340,10 +360,14 @@ chmod 600 authorized_keys
 
 For both `700` and `600`, the group and other bits are `000`. In other words, nobody but the deploy account (the owner) has any access at all to the `.ssh` directory or the `authorized_keys` file.
 
+<br>
+
 ### Creating a Tailscale OAuth client
 - Tailscale console → settings > Trust credentials > + Credential
 - OAuth > All scopes
 - Grab the client ID and secret
+
+<br>
 
 ### Registering GitHub Secrets
 - `DOCKERHUB_USERNAME` / `DOCKERHUB_TOKEN` : Docker Hub authentication
@@ -351,6 +375,8 @@ For both `700` and `600`, the group and other bits are `000`. In other words, no
 - `SSH_PRIVATE_KEY` : the full contents of `cat ~/.ssh/<key_name>`
 - `SERVER_TS_IP` : the home server address from `tailscale ip -4`
 - `ENV_FILE_CONTENT` : the app's `.env` contents
+
+<br>
 
 ### main.yml
 ```yml
@@ -424,6 +450,8 @@ jobs:
 
           rm -f .env.tmp
 ```
+
+<br>
 
 ### Why I still need an SSH key even with Tailscale
 Tailscale's job is to open up the firewall layer so traffic can reach the home server at all. The SSH key's job is to prove, once traffic has reached the server, that it's allowed to log in as this account. They cover two different layers — "reachability" and "authentication" — so having one doesn't let you skip the other.

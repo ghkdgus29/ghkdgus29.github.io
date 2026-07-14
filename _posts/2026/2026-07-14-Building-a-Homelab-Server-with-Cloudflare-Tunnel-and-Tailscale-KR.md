@@ -38,6 +38,8 @@ lang_ref: /Building-a-Homelab-Server-with-Cloudflare-Tunnel-and-Tailscale-EN/
 
 # 구축 과정
 
+<br>
+
 ## Ubuntu Server 설치
 윈도우는 홈서버로 쓰기엔 불편할 것 같았고, 무엇보다 리눅스가 더 낭만있다고 생각해서 윈도우를 밀어버리고 Ubuntu Server를 설치하기로 했다.
 
@@ -53,6 +55,8 @@ USB를 꽂은 채로 노트북을 켜고 F2를 눌러 BIOS로 진입한 뒤,
 
 ## 서버 기본 설정
 
+<br>
+
 ### SSH 데몬 설치
 ```bash
 sudo apt update
@@ -60,6 +64,8 @@ sudo apt install openssh-server -y
 sudo systemctl enable --now ssh
 systemctl status ssh   # active (running) 확인
 ```
+
+<br>
 
 ### 방화벽에 SSH 포트 허용
 뒤에서 Tailscale 전용으로 SSH 접근을 좁힐 예정이지만, 지금 당장은 초기 접속을 위해 우선 열어둔다.
@@ -69,11 +75,15 @@ sudo ufw allow OpenSSH
 
 `ip a`로 홈서버 IP를 확인한 뒤, 메인으로 쓰는 맥북에서 `ssh 홈서버계정명@홈서버IP`로 접속해서 이후 작업을 진행했다.
 
+<br>
+
 ### 시스템 업데이트
 ```bash
 sudo apt update && sudo apt upgrade -y
 sudo reboot
 ```
+
+<br>
 
 ### 노트북 전원 관리
 노트북을 서버로 쓰는 만큼, 뚜껑을 닫아도 절전모드로 빠지지 않도록 설정이 필요했다.
@@ -90,6 +100,8 @@ sudo systemctl mask sleep.target suspend.target hibernate.target hybrid-sleep.ta
 sudo systemctl restart systemd-logind
 ```
 
+<br>
+
 ### SSH 키 인증으로 전환
 메인 맥북에서 SSH 키 쌍을 생성하고, 공개키를 홈서버로 전송했다.
 ```bash
@@ -97,6 +109,8 @@ ssh-keygen -t ed25519 -f ~/.ssh/<key_name> -C "<key_comment>"
 ssh-copy-id -i ~/.ssh/<key_name>.pub 계정명@홈서버IP 
 ```
 > ssh-copy-id는 비밀번호로 로그인이 가능한 계정에서만 사용 가능하다.
+
+<br>
 
 ### SSH 비밀번호 로그인 막기
 ```bash
@@ -294,12 +308,16 @@ main 브랜치 push
   → (deploy) tailnet에 임시로 합류 → SSH로 홈 서버 접속 → 최신 이미지 pull & 재기동
 ```
 
+<br>
+
 ### 배포 전용 계정 생성
 홈 서버에 배포 전용 deploy 계정을 생성한다.
 ```bash
 sudo useradd -m -s /bin/bash deploy
 sudo usermod -aG docker deploy
 ```
+
+<br>
 
 ### 배포 전용 SSH 키 생성 및 전송
 맥북에서 생성한 뒤 홈서버로 전송한다.
@@ -308,6 +326,8 @@ ssh-keygen -t ed25519 -f ~/.ssh/<key_name> -C "<key_comment>"
 scp ~/.ssh/<key_name>.pub <my_account>@<server_ip>:~/key.pub
 ```
 > deploy 계정은 비밀번호가 없는 계정이므로 위에서 사용한 ssh-copy-id를 사용할 수 없다.
+
+<br>
 
 ### deploy 계정 정식 등록
 앞에서 scp로 전송한 공개키는 내 계정의 홈 디렉토리에 잠시 올려둔 것일 뿐, 아직 deploy 계정과는 아무 관계가 없다. 이 공개키를 deploy 계정의 `authorized_keys`에 등록해야 GitHub Actions이 deploy 계정으로 SSH 로그인을 할 수 있다.
@@ -340,10 +360,14 @@ chmod 600 authorized_keys
 
 `700`과 `600` 모두 group·other 비트가 `000`이다. 즉 deploy 계정(owner) 외에는 `.ssh` 디렉토리와 `authorized_keys` 에 접근할 수 없음을 나타낸다.
 
+<br>
+
 ### Tailscale OAuth client 생성
 - Tailscale console → settings > Trust credentials > + Credential
 - OAuth > All scopes
 - client id와 secret 발급받기
+
+<br>
 
 ### GitHub Secrets 등록
 - `DOCKERHUB_USERNAME` / `DOCKERHUB_TOKEN` : Docker Hub 인증
@@ -351,6 +375,8 @@ chmod 600 authorized_keys
 - `SSH_PRIVATE_KEY` : `cat ~/.ssh/<key_name>` 전체 내용
 - `SERVER_TS_IP` : `tailscale ip -4`로 확인한 홈 서버 주소
 - `ENV_FILE_CONTENT` : 앱 `.env` 내용
+
+<br>
 
 ### main.yml
 ```yml
@@ -424,6 +450,8 @@ jobs:
 
           rm -f .env.tmp
 ```
+
+<br>
 
 ### Tailscale이 있는데도 SSH 키가 필요한 이유
 Tailscale은 홈서버에 도달할 수 있도록 방화벽 계층을 열어주는 역할이고, SSH 키는 그렇게 도달한 다음 이 계정으로 로그인해도 되는지를 증명하는 역할이다. 둘은 "도달 가능성"과 "인증"이라는 서로 다른 계층을 책임지기 때문에, 하나가 있다고 다른 하나를 생략할 수는 없다.
