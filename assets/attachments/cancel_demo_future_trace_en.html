@@ -1,0 +1,857 @@
+<title>cancel_demo_future Execution Slides</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<style>
+  :root {
+    --bg: #eef1ef;
+    --surface: #ffffff;
+    --surface-2: #e2e7e3;
+    --border: #c7cec8;
+    --text: #1a2420;
+    --text-dim: #55625a;
+
+    --ready: #2f8f80;
+    --ready-bg: #d9efe9;
+    --sleep: #7c6aa8;
+    --sleep-bg: #e7e1f3;
+    --io: #3f7ea6;
+    --io-bg: #dbe9f2;
+    --fut: #b5476a;
+    --fut-bg: #f6dde6;
+    --cur: #b5711d;
+    --cur-bg: #f6e6cc;
+
+    --console-bg: #12181a;
+    --console-text: #d7c9a3;
+    --console-accent: #e0a640;
+
+    --code-bg: #f5f6f3;
+    --kw: #8a4b8f;
+
+    --font-display: ui-serif, Georgia, "Iowan Old Style", "Noto Serif KR", serif;
+    --font-mono: ui-monospace, "SF Mono", "Cascadia Code", "D2Coding", Consolas, monospace;
+    --font-ui: -apple-system, BlinkMacSystemFont, "Pretendard", "Apple SD Gothic Neo", sans-serif;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #12161a;
+      --surface: #171c21;
+      --surface-2: #1e252b;
+      --border: #2b333a;
+      --text: #e7ece7;
+      --text-dim: #9aa6a0;
+
+      --ready: #5fc2ae;
+      --ready-bg: #163a35;
+      --sleep: #a996d6;
+      --sleep-bg: #2c2440;
+      --io: #6bb0dc;
+      --io-bg: #1c3444;
+      --fut: #e78bab;
+      --fut-bg: #3a1f2a;
+      --cur: #e3a54c;
+      --cur-bg: #3a2c14;
+
+      --console-bg: #0b0e0f;
+      --console-text: #e3d3a0;
+      --console-accent: #e3a54c;
+
+      --code-bg: #14181c;
+      --kw: #c98bd0;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #12161a;
+    --surface: #171c21;
+    --surface-2: #1e252b;
+    --border: #2b333a;
+    --text: #e7ece7;
+    --text-dim: #9aa6a0;
+
+    --ready: #5fc2ae;
+    --ready-bg: #163a35;
+    --sleep: #a996d6;
+    --sleep-bg: #2c2440;
+    --io: #6bb0dc;
+    --io-bg: #1c3444;
+    --fut: #e78bab;
+    --fut-bg: #3a1f2a;
+    --cur: #e3a54c;
+    --cur-bg: #3a2c14;
+
+    --console-bg: #0b0e0f;
+    --console-text: #e3d3a0;
+    --console-accent: #e3a54c;
+
+    --code-bg: #14181c;
+    --kw: #c98bd0;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-ui);
+    line-height: 1.5;
+    padding: 2.25rem 1.5rem 4rem;
+    max-width: 1360px;
+    margin: 0 auto;
+  }
+
+  h1 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(1.6rem, 2.4vw, 2.1rem);
+    margin: 0 0 0.3rem;
+    text-wrap: balance;
+    letter-spacing: -0.01em;
+  }
+  .subtitle {
+    color: var(--text-dim);
+    font-size: 0.95rem;
+    max-width: 74ch;
+    margin: 0 0 1.1rem;
+  }
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1.1rem;
+    font-size: 0.82rem;
+    color: var(--text-dim);
+    margin-bottom: 1.8rem;
+  }
+  .legend span.dot {
+    display: inline-block;
+    width: 0.55em;
+    height: 0.55em;
+    border-radius: 50%;
+    margin-right: 0.4em;
+  }
+  .dot.ready { background: var(--ready); }
+  .dot.sleep { background: var(--sleep); }
+  .dot.io { background: var(--io); }
+  .dot.fut { background: var(--fut); }
+  .dot.console { background: var(--console-accent); }
+  .dot.cb { background: var(--text-dim); }
+
+  .layout {
+    display: grid;
+    grid-template-columns: 168px 1fr;
+    gap: 1.6rem;
+    align-items: start;
+  }
+  @media (max-width: 780px) {
+    .layout { grid-template-columns: 1fr; }
+    .toc { display: none; }
+  }
+
+  .toc {
+    position: sticky;
+    top: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    font-family: var(--font-mono);
+    font-size: 0.76rem;
+  }
+  .toc a {
+    color: var(--text-dim);
+    text-decoration: none;
+    padding: 0.25rem 0.4rem;
+    border-radius: 5px;
+    border-left: 2px solid transparent;
+  }
+  .toc a:hover { color: var(--text); border-left-color: var(--fut); background: var(--surface-2); }
+
+  .slides { display: flex; flex-direction: column; gap: 1.4rem; }
+
+  .slide {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.1rem 1.3rem 1.35rem;
+    scroll-margin-top: 1rem;
+  }
+
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-dim);
+    margin-bottom: 0.55rem;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.6rem;
+  }
+  .eyebrow .clock { text-transform: none; letter-spacing: 0; color: var(--fut); font-weight: 700; }
+
+  .trace {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    background: var(--code-bg);
+    border-radius: 8px;
+    padding: 0.6rem 0.85rem;
+    margin: 0 0 0.7rem;
+    white-space: pre;
+    overflow-x: auto;
+  }
+  .trace .kw { color: var(--kw); font-weight: 600; }
+  .trace .old { color: var(--text-dim); opacity: 0.6; }
+  .trace .old .kw { color: var(--text-dim); font-weight: 600; }
+
+  .annotation {
+    border-left: 3px solid var(--fut);
+    background: var(--fut-bg);
+    border-radius: 0 8px 8px 0;
+    padding: 0.55rem 0.8rem;
+    font-size: 0.86rem;
+    margin-bottom: 0.85rem;
+  }
+
+  .state-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.9rem;
+    align-items: start;
+    margin-bottom: 0.7rem;
+  }
+  @media (max-width: 720px) {
+    .state-row { grid-template-columns: 1fr; }
+  }
+
+  .queue-label {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-dim);
+    margin-bottom: 0.35rem;
+  }
+
+  .tube {
+    border-radius: 14px;
+    border: 1.5px solid var(--border);
+    padding: 0.6rem 0.7rem;
+    min-height: 3rem;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+  }
+  .tube.ready { border-color: var(--ready); }
+  .tube.sleep { border-color: var(--sleep); }
+
+  .waitbox {
+    border: 1.5px solid var(--io);
+    border-radius: 10px;
+    padding: 0.55rem 0.7rem;
+    min-height: 2.6rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.4rem;
+    margin-bottom: 0.7rem;
+  }
+  .wait-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: var(--font-mono);
+    font-size: 0.76rem;
+  }
+  .wait-row .fdlabel { color: var(--text-dim); white-space: nowrap; }
+
+  /* ---- Task card: shows the wrapper object's own fields, not just a name ---- */
+  .taskcard {
+    border: 1.5px solid var(--ready);
+    background: var(--ready-bg);
+    border-radius: 10px;
+    padding: 0.55rem 0.75rem;
+    font-family: var(--font-mono);
+    font-size: 0.76rem;
+    min-width: 13rem;
+    flex: none;
+  }
+  .taskcard .name { font-weight: 700; color: var(--ready); margin-bottom: 0.3rem; display: block; }
+  .taskcard .field { display: block; font-size: 0.71rem; opacity: 0.85; }
+  .taskcard.done { opacity: 0.55; }
+  .taskcard.done .name { text-decoration: line-through; }
+  .taskcard.ghost { border-style: dashed; background: transparent; color: var(--text-dim); opacity: 0.62; }
+  .taskcard.ghost .name { color: var(--text-dim); text-decoration: line-through; text-decoration-color: var(--text-dim); }
+  .taskcard.ghost .field { opacity: 0.7; }
+  .taskcard.ghost .field.dest { font-style: italic; opacity: 0.95; }
+
+  /* ---- plain callback: a bare function sitting in ready/sleeping, NOT a Task ---- */
+  .chip {
+    font-family: var(--font-mono);
+    font-size: 0.76rem;
+    padding: 0.35rem 0.6rem;
+    border-radius: 999px;
+    white-space: nowrap;
+    flex: none;
+    line-height: 1.3;
+  }
+  .chip.sleep { background: var(--sleep-bg); color: var(--sleep); border: 1px solid var(--sleep); }
+  .chip.callback { background: var(--surface-2); color: var(--text); border: 1px dashed var(--text-dim); }
+  .chip.fut-ref { background: var(--fut-bg); color: var(--fut); border: 1px solid var(--fut); font-size: 0.72rem; padding: 0.28rem 0.55rem; }
+  .chip .sub { display: block; font-size: 0.66rem; opacity: 0.85; }
+  .tube-empty, .wait-empty { font-family: var(--font-mono); font-size: 0.76rem; color: var(--text-dim); }
+
+  .chip.ghost {
+    background: transparent;
+    border: 1.5px dashed var(--text-dim);
+    color: var(--text-dim);
+    opacity: 0.62;
+  }
+  .chip.ghost .label { text-decoration: line-through; text-decoration-color: var(--text-dim); }
+  .chip.ghost .sub { opacity: 0.9; text-decoration: none; font-style: italic; }
+
+  /* ---- Future panel + the Task↔Future pairing ---- */
+  .futures-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-top: 0.3rem;
+  }
+  .pair {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+  }
+  .pair-arrow {
+    font-family: var(--font-mono);
+    color: var(--text-dim);
+    font-size: 1.05rem;
+  }
+  .futurebox {
+    border: 1.5px solid var(--fut);
+    background: var(--fut-bg);
+    border-radius: 10px;
+    padding: 0.55rem 0.75rem;
+    font-family: var(--font-mono);
+    font-size: 0.76rem;
+    min-width: 15rem;
+  }
+  .futurebox .title { font-weight: 700; color: var(--fut); margin-bottom: 0.3rem; display: block; }
+  .futurebox .field { display: block; font-size: 0.71rem; opacity: 0.85; }
+  .futurebox .cblabel { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.04em; opacity: 0.75; margin: 0.35rem 0 0.15rem; }
+  .futurebox .cblist { display: flex; flex-direction: column; gap: 0.25rem; }
+  .futurebox .cbitem {
+    font-size: 0.71rem;
+    background: var(--surface);
+    border: 1px solid var(--fut);
+    border-radius: 6px;
+    padding: 0.2rem 0.45rem;
+  }
+
+  .console {
+    background: var(--console-bg);
+    color: var(--console-text);
+    border-radius: 8px;
+    padding: 0.6rem 0.85rem;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    margin-top: 0.85rem;
+  }
+  .console .line.latest { color: var(--console-accent); }
+
+  code.inline { font-family: var(--font-mono); background: var(--surface-2); padding: 0.05em 0.3em; border-radius: 4px; font-size: 0.92em; }
+
+  .writeup { margin-top: 2.6rem; border-top: 1px solid var(--border); padding-top: 1.6rem; }
+  .writeup h2 { font-family: var(--font-display); font-size: 1.25rem; margin: 0 0 0.9rem; }
+  .writeup .finding { display: grid; grid-template-columns: 1.6rem 1fr; gap: 0.15rem 0.7rem; margin-bottom: 1.1rem; }
+  .writeup .finding .n { font-family: var(--font-mono); color: var(--fut); font-weight: 700; }
+  .writeup .finding h3 { grid-column: 2; font-size: 0.98rem; margin: 0 0 0.25rem; }
+  .writeup .finding p { grid-column: 2; margin: 0; color: var(--text-dim); font-size: 0.92rem; max-width: 74ch; }
+  .writeup .finding code { font-family: var(--font-mono); background: var(--surface-2); padding: 0.05em 0.35em; border-radius: 4px; color: var(--text); font-size: 0.9em; }
+</style>
+
+<h1>cancel_demo_future Execution Slides</h1>
+<p class="subtitle">
+  How <code class="inline">cancel_demo_future.py</code> handles cancellation with <code class="inline">Future</code>,
+  from <code class="inline">stalled_read</code> waiting on data that will never arrive to it getting cancelled by
+  <code class="inline">timeout_after</code>. This demo only ever reads a socket, so <code class="inline">current</code>
+  and <code class="inline">_write_waiting</code> are left out, and the extra room instead goes toward showing the
+  relationship and state between <code class="inline">Task</code> and <code class="inline">Future</code>. (Same
+  approach as the <code class="inline">yieldo</code>/<code class="inline">io_scheduler</code> execution slides)
+</p>
+<div class="legend">
+  <span><span class="dot ready"></span>ready — a Task (card) or a plain callback (pill)</span>
+  <span><span class="dot sleep"></span>sleeping — timer heap (its callback is always a plain function)</span>
+  <span><span class="dot io"></span>_read_waiting — fd → callback dict</span>
+  <span><span class="dot fut"></span>Future — result/cancellation state and <code class="inline">_callbacks</code></span>
+  <span><span class="dot console"></span>console — print() output</span>
+</div>
+
+<div class="layout">
+  <nav class="toc">
+    <a href="#s1">1. Initial state</a>
+    <a href="#s2">2. reader dispatch · recv Future</a>
+    <a href="#s3">3. timeout dispatch · sleep Future</a>
+    <a href="#s4">4. select blocks 2s</a>
+    <a href="#s5">5. Timer fires immediately · callback scheduled</a>
+    <a href="#s6">6. timeout resumes · cancel() chain</a>
+    <a href="#s7">7. read_waiting cleaned up</a>
+    <a href="#s8">8. reader cancellation completes</a>
+  </nav>
+
+  <div class="slides">
+
+    <section class="slide" id="s1">
+      <div class="eyebrow"><span>STEP 1 — Initial state</span><span class="clock">t = 0</span></div>
+      <pre class="trace">main()
+  <span class="kw">&gt;</span> reader = sched.new_task(stalled_read(a))
+  <span class="kw">&gt;</span> sched.new_task(timeout_after(reader, seconds=2))</pre>
+      <div class="state-row">
+        <div>
+          <div class="queue-label">ready</div>
+          <div class="tube ready">
+            <div class="taskcard"><span class="name">timeout_after(reader, seconds=2)</span><span class="field">done = False</span><span class="field">_fut_waiter = None</span><span class="field">_must_cancel = False</span></div>
+            <div class="taskcard"><span class="name">stalled_read(a)</span><span class="field">done = False</span><span class="field">_fut_waiter = None</span><span class="field">_must_cancel = False</span></div>
+          </div>
+        </div>
+        <div>
+          <div class="queue-label">sleeping</div>
+          <div class="tube sleep"><span class="tube-empty">empty</span></div>
+        </div>
+      </div>
+      <div class="queue-label">_read_waiting</div>
+      <div class="waitbox"><span class="wait-empty">empty</span></div>
+    </section>
+
+    <section class="slide" id="s2">
+      <div class="eyebrow"><span>STEP 2</span><span class="clock">t = 0</span></div>
+      <pre class="trace">sched.run()
+  <span class="kw">&gt;</span> while self.ready:
+    <span class="kw">&gt;</span> func = self.ready.popleft()
+    <span class="kw">&gt;</span> func()
+      <span class="kw">&gt;</span> Task.__call__(self)
+        <span class="kw">&gt;</span> self._fut_waiter = None
+        <span class="kw">&gt;</span> result = self.coro.send(None)
+          <span class="kw">&gt;</span> await sched.recv(a, 1024)
+            <span class="kw">&gt;</span> fut = Future()
+            <span class="kw">&gt;</span> self.read_wait(a, lambda: fut.set_result(None))
+            <span class="kw">&gt;</span> fut.add_done_callback(lambda f: self._read_waiting.pop(a, None))
+            <span class="kw">&gt;</span> await fut
+              <span class="kw">&gt;</span> yield self
+        <span class="kw">&gt;</span> if isinstance(result, Future):
+          <span class="kw">&gt;</span> self._fut_waiter = result
+          <span class="kw">&gt;</span> result.add_done_callback(self._wakeup)</pre>
+      <div class="annotation"><code class="inline">Future</code> is a container object holding a result that will be completed in the future. <br> If the computation isn't done yet, <code class="inline">__await__</code> yields itself back to <code class="inline">Task.__call__</code>, which stores it in <code class="inline">self._fut_waiter</code> and registers a callback, <code class="inline">self._wakeup</code>, to be woken up when it's done. <br> If the computation is already done, it just returns the result.</div>
+      <div class="state-row">
+        <div>
+          <div class="queue-label">ready</div>
+          <div class="tube ready">
+            <div class="taskcard"><span class="name">timeout_after(reader, seconds=2)</span><span class="field">done = False</span><span class="field">_fut_waiter = None</span><span class="field">_must_cancel = False</span></div>
+            <div class="taskcard ghost"><span class="name">stalled_read(a)</span><span class="field dest">→ dispatched</span></div>
+          </div>
+        </div>
+        <div>
+          <div class="queue-label">sleeping</div>
+          <div class="tube sleep"><span class="tube-empty">empty</span></div>
+        </div>
+      </div>
+      <div class="queue-label">_read_waiting</div>
+      <div class="waitbox">
+        <div class="wait-row"><span class="fdlabel">socket a →</span><span class="chip callback">lambda: fut.set_result(None)</span><span class="pair-arrow">→</span><span class="chip fut-ref">Future(recv)</span></div>
+      </div>
+      <div class="futures-row">
+        <div class="pair">
+          <div class="taskcard"><span class="name">stalled_read(a)</span><span class="field">done = False</span><span class="field">_fut_waiter = Future(recv) →</span><span class="field">_must_cancel = False</span></div>
+          <span class="pair-arrow">→</span>
+          <div class="futurebox">
+            <span class="title">Future — recv(a, 1024)</span>
+            <span class="field">_done = False</span>
+            <span class="field">_cancelled = False</span>
+            <div class="cblabel">_callbacks</div>
+            <div class="cblist">
+              <div class="cbitem">lambda f: self._read_waiting.pop(a, None)</div>
+              <div class="cbitem">stalled_read._wakeup</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="console"><span class="line latest">[reader] waiting for data that will never arrive</span></div>
+    </section>
+
+    <section class="slide" id="s3">
+      <div class="eyebrow"><span>STEP 3</span><span class="clock">t = 0</span></div>
+      <pre class="trace">sched.run()
+  <span class="kw">&gt;</span> while self.ready:
+    <span class="kw">&gt;</span> func = self.ready.popleft()
+    <span class="kw">&gt;</span> func()
+      <span class="kw">&gt;</span> Task.__call__(self)
+        <span class="kw">&gt;</span> self._fut_waiter = None
+        <span class="kw">&gt;</span> result = self.coro.send(None)
+          <span class="kw">&gt;</span> await sched.sleep(2)
+            <span class="kw">&gt;</span> fut = Future()
+            <span class="kw">&gt;</span> self.call_later(2, lambda: fut.set_result(None))
+              <span class="kw">&gt;</span> heapq.heappush(self.sleeping, (deadline, self.sequence, func))
+            <span class="kw">&gt;</span> await fut
+              <span class="kw">&gt;</span> yield self
+        <span class="kw">&gt;</span> if isinstance(result, Future):
+          <span class="kw">&gt;</span> self._fut_waiter = result
+          <span class="kw">&gt;</span> result.add_done_callback(self._wakeup)</pre>
+      <div class="annotation"><code class="inline">sleep()</code> follows the same pattern as <code class="inline">recv()</code>, except it has no separate cleanup callback.</div>
+      <div class="state-row">
+        <div>
+          <div class="queue-label">ready</div>
+          <div class="tube ready"><div class="taskcard ghost"><span class="name">timeout_after(reader, 2)</span><span class="field dest">→ dispatched</span></div></div>
+        </div>
+        <div>
+          <div class="queue-label">sleeping</div>
+          <div class="tube sleep"><span class="chip sleep">lambda: fut.set_result(None)<span class="sub">deadline 2 · seq 1</span></span><span class="pair-arrow">→</span><span class="chip fut-ref">Future(sleep)</span></div>
+        </div>
+      </div>
+      <div class="queue-label">_read_waiting</div>
+      <div class="waitbox">
+        <div class="wait-row"><span class="fdlabel">socket a →</span><span class="chip callback">lambda: fut.set_result(None)</span><span class="pair-arrow">→</span><span class="chip fut-ref">Future(recv)</span></div>
+      </div>
+      <div class="futures-row">
+        <div class="pair">
+          <div class="taskcard"><span class="name">stalled_read(a)</span><span class="field">done = False</span><span class="field">_fut_waiter = Future(recv) →</span><span class="field">_must_cancel = False</span></div>
+          <span class="pair-arrow">→</span>
+          <div class="futurebox">
+            <span class="title">Future — recv(a, 1024)</span>
+            <span class="field">_done = False</span>
+            <span class="field">_cancelled = False</span>
+            <div class="cblabel">_callbacks</div>
+            <div class="cblist">
+              <div class="cbitem">lambda f: self._read_waiting.pop(a, None)</div>
+              <div class="cbitem">stalled_read._wakeup</div>
+            </div>
+          </div>
+        </div>
+        <div class="pair">
+          <div class="taskcard"><span class="name">timeout_after(reader, 2)</span><span class="field">done = False</span><span class="field">_fut_waiter = Future(sleep) →</span><span class="field">_must_cancel = False</span></div>
+          <span class="pair-arrow">→</span>
+          <div class="futurebox">
+            <span class="title">Future — sleep(2)</span>
+            <span class="field">_done = False</span>
+            <span class="field">_cancelled = False</span>
+            <div class="cblabel">_callbacks</div>
+            <div class="cblist">
+              <div class="cbitem">timeout_after._wakeup</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="console"><span class="line">[reader] waiting for data that will never arrive</span></div>
+    </section>
+
+    <section class="slide" id="s4">
+      <div class="eyebrow"><span>STEP 4</span><span class="clock">t = 2</span></div>
+      <pre class="trace">sched.run()
+  <span class="kw">&gt;</span> while self.sleeping or self._read_waiting ...:
+    <span class="kw">&gt;</span> if not self.ready:
+      <span class="kw">&gt;</span> if self.sleeping:
+        <span class="kw">&gt;</span> timeout = 2sec
+      <span class="kw">&gt;</span> can_read, can_write, _ = select(self._read_waiting, self._write_waiting, [], timeout)</pre>
+      <div class="annotation"><code class="inline">select()</code> is called with <code class="inline">timeout=2</code>, so it blocks until whichever comes first — "the socket becomes readable" or "2 seconds pass". Socket a never sends anything, so the block is released by the 2-second timeout.</div>
+      <div class="state-row">
+        <div>
+          <div class="queue-label">ready</div>
+          <div class="tube ready"><span class="tube-empty">empty</span></div>
+        </div>
+        <div>
+          <div class="queue-label">sleeping</div>
+          <div class="tube sleep"><span class="chip sleep">lambda: fut.set_result(None)<span class="sub">deadline 2 · seq 1</span></span><span class="pair-arrow">→</span><span class="chip fut-ref">Future(sleep)</span></div>
+        </div>
+      </div>
+      <div class="queue-label">_read_waiting</div>
+      <div class="waitbox">
+        <div class="wait-row"><span class="fdlabel">socket a →</span><span class="chip callback">lambda: fut.set_result(None)</span><span class="pair-arrow">→</span><span class="chip fut-ref">Future(recv)</span></div>
+      </div>
+      <div class="futures-row">
+        <div class="pair">
+          <div class="taskcard"><span class="name">stalled_read(a)</span><span class="field">done = False</span><span class="field">_fut_waiter = Future(recv) →</span><span class="field">_must_cancel = False</span></div>
+          <span class="pair-arrow">→</span>
+          <div class="futurebox">
+            <span class="title">Future — recv(a, 1024)</span>
+            <span class="field">_done = False</span>
+            <span class="field">_cancelled = False</span>
+            <div class="cblabel">_callbacks</div>
+            <div class="cblist">
+              <div class="cbitem">lambda f: self._read_waiting.pop(a, None)</div>
+              <div class="cbitem">stalled_read._wakeup</div>
+            </div>
+          </div>
+        </div>
+        <div class="pair">
+          <div class="taskcard"><span class="name">timeout_after(reader, 2)</span><span class="field">done = False</span><span class="field">_fut_waiter = Future(sleep) →</span><span class="field">_must_cancel = False</span></div>
+          <span class="pair-arrow">→</span>
+          <div class="futurebox">
+            <span class="title">Future — sleep(2)</span>
+            <span class="field">_done = False</span>
+            <span class="field">_cancelled = False</span>
+            <div class="cblabel">_callbacks</div>
+            <div class="cblist">
+              <div class="cbitem">timeout_after._wakeup</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="console"><span class="line">[reader] waiting for data that will never arrive</span></div>
+    </section>
+
+    <section class="slide" id="s5">
+      <div class="eyebrow"><span>STEP 5</span><span class="clock">t = 2</span></div>
+      <pre class="trace"><span class="old">sched.run()
+  <span class="kw">&gt;</span> while self.sleeping or self._read_waiting ...:
+    <span class="kw">&gt;</span> if not self.ready:
+      <span class="kw">&gt;</span> can_read, can_write, _ = select(...)   <span class="kw">#</span> times out after 2s, can_read = []</span>
+      <span class="kw">&gt;</span> while self.sleeping:
+        <span class="kw">&gt;</span> if now &gt; self.sleeping[0][0]:
+          <span class="kw">&gt;</span> heapq.heappop(self.sleeping)[2]()
+            <span class="kw">&gt;</span> fut.set_result(None)
+              <span class="kw">&gt;</span> self._result = None
+              <span class="kw">&gt;</span> self._done = True
+              <span class="kw">&gt;</span> self._run_callbacks()
+                <span class="kw">&gt;</span> callbacks, self._callbacks = self._callbacks, []
+                <span class="kw">&gt;</span> for cb in callbacks:
+                  <span class="kw">&gt;</span> sched.call_soon(lambda cb=cb: cb(self))
+                    <span class="kw">&gt;</span> self.ready.append(func)
+
+      </pre>
+      <div class="annotation">The <code class="inline">lambda</code> that just got called runs <code class="inline">Future(sleep).set_result(None)</code>, and as a result, the registered callback (<code class="inline">timeout_after</code>'s <code class="inline">_wakeup</code>) gets scheduled onto <code class="inline">ready</code>.</div>
+      <div class="state-row">
+        <div>
+          <div class="queue-label">ready</div>
+          <div class="tube ready"><span class="chip callback">timeout_after._wakeup(future)</span></div>
+        </div>
+        <div>
+          <div class="queue-label">sleeping</div>
+          <div class="tube sleep"><span class="chip sleep ghost"><span class="label">lambda: fut.set_result(None)</span><span class="sub">→ called immediately</span></span></div>
+        </div>
+      </div>
+      <div class="queue-label">_read_waiting</div>
+      <div class="waitbox">
+        <div class="wait-row"><span class="fdlabel">socket a →</span><span class="chip callback">lambda: fut.set_result(None)</span><span class="pair-arrow">→</span><span class="chip fut-ref">Future(recv)</span></div>
+      </div>
+      <div class="futures-row">
+        <div class="pair">
+          <div class="taskcard"><span class="name">stalled_read(a)</span><span class="field">done = False</span><span class="field">_fut_waiter = Future(recv) →</span><span class="field">_must_cancel = False</span></div>
+          <span class="pair-arrow">→</span>
+          <div class="futurebox">
+            <span class="title">Future — recv(a, 1024)</span>
+            <span class="field">_done = False</span>
+            <span class="field">_cancelled = False</span>
+            <div class="cblabel">_callbacks</div>
+            <div class="cblist">
+              <div class="cbitem">lambda f: self._read_waiting.pop(a, None)</div>
+              <div class="cbitem">stalled_read._wakeup</div>
+            </div>
+          </div>
+        </div>
+        <div class="pair">
+          <div class="taskcard"><span class="name">timeout_after(reader, 2)</span><span class="field">done = False</span><span class="field">_fut_waiter = Future(sleep) →</span><span class="field">_must_cancel = False</span></div>
+          <span class="pair-arrow">→</span>
+          <div class="futurebox">
+            <span class="title">Future — sleep(2)</span>
+            <span class="field">_done = True</span>
+            <span class="field">_cancelled = False</span>
+            <div class="cblabel">_callbacks (all consumed)</div>
+            <div class="cblist"><span class="tube-empty">empty</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="console"><span class="line">[reader] waiting for data that will never arrive</span></div>
+    </section>
+
+    <section class="slide" id="s6">
+      <div class="eyebrow"><span>STEP 6</span><span class="clock">t = 2</span></div>
+      <pre class="trace">sched.run()
+  <span class="kw">&gt;</span> while self.ready:
+    <span class="kw">&gt;</span> func = self.ready.popleft()
+    <span class="kw">&gt;</span> func()
+        <span class="kw">&gt;</span> self()
+          <span class="kw">&gt;</span> Task.__call__(self)
+            <span class="kw">&gt;</span> self._fut_waiter = None
+            <span class="kw">&gt;</span> result = self.coro.send(None)
+              <span class="kw">&gt;</span> task.cancel()
+                <span class="kw">&gt;</span> if self._fut_waiter is not None:
+                  <span class="kw">&gt;</span> return self._fut_waiter.cancel()
+                    <span class="kw">&gt;</span> self._cancelled = True
+                    <span class="kw">&gt;</span> self._done = True
+                    <span class="kw">&gt;</span> self._run_callbacks()
+                      <span class="kw">&gt;</span> for cb in callbacks:
+                        <span class="kw">&gt;</span> sched.call_soon(lambda cb=cb: cb(self))
+                          <span class="kw">&gt;</span> self.ready.append(func)
+                    <span class="kw">&gt;</span> return True
+            <span class="kw">&gt;</span> except StopIteration:
+              <span class="kw">&gt;</span> self.done = True
+              <span class="kw">&gt;</span> return</pre>
+      <div class="annotation">The <code class="inline">_wakeup</code> method currently running refers to the <code class="inline">Task</code> holding the <code class="inline">timeout_after</code> coroutine. <br> <code class="inline">timeout_after</code> holds a reference to the <code class="inline">reader</code> Task and cancels it. <br> <code class="inline">timeout_after</code> then runs the rest of its coroutine to completion, raising <code class="inline">StopIteration</code> to finish normally.</div>
+      <div class="state-row">
+        <div>
+          <div class="queue-label">ready</div>
+          <div class="tube ready">
+            <span class="chip callback ghost"><span class="label">timeout_after._wakeup(future)</span><span class="sub">dispatched</span></span>
+            <span class="chip callback">lambda f: self._read_waiting.pop(a, None)</span>
+            <span class="chip callback">stalled_read._wakeup(future)</span>
+          </div>
+        </div>
+        <div>
+          <div class="queue-label">sleeping</div>
+          <div class="tube sleep"><span class="tube-empty">empty</span></div>
+        </div>
+      </div>
+      <div class="queue-label">_read_waiting</div>
+      <div class="waitbox">
+        <div class="wait-row"><span class="fdlabel">socket a →</span><span class="chip callback">lambda: fut.set_result(None)</span><span class="pair-arrow">→</span><span class="chip fut-ref">Future(recv)</span></div>
+      </div>
+      <div class="futures-row">
+        <div class="pair">
+          <div class="taskcard"><span class="name">stalled_read(a)</span><span class="field">done = False</span><span class="field">_fut_waiter = Future(recv) →</span><span class="field">_must_cancel = False</span></div>
+          <span class="pair-arrow">→</span>
+          <div class="futurebox">
+            <span class="title">Future — recv(a, 1024)</span>
+            <span class="field">_done = True</span>
+            <span class="field">_cancelled = True</span>
+            <div class="cblabel">_callbacks (all consumed)</div>
+            <div class="cblist"><span class="tube-empty">empty</span></div>
+          </div>
+        </div>
+        <div class="pair">
+          <div class="taskcard done"><span class="name">timeout_after(reader, 2)</span><span class="field">done = True</span><span class="field">_fut_waiter = None</span><span class="field">_must_cancel = False</span></div>
+        </div>
+      </div>
+      <div class="console"><span class="line">[reader] waiting for data that will never arrive</span><br><span class="line latest">[timeout] 2s elapsed, cancelling read</span></div>
+    </section>
+
+    <section class="slide" id="s7">
+      <div class="eyebrow"><span>STEP 7</span><span class="clock">t = 2</span></div>
+      <pre class="trace">sched.run()
+  <span class="kw">&gt;</span> while self.ready:
+    <span class="kw">&gt;</span> func = self.ready.popleft()
+    <span class="kw">&gt;</span> func()
+      <span class="kw">&gt;</span> lambda f: self._read_waiting.pop(a, None)</pre>
+      <div class="annotation">The cleanup callback that <code class="inline">recv()</code> registered runs and removes socket a from <code class="inline">_read_waiting</code>. </div>
+      <div class="state-row">
+        <div>
+          <div class="queue-label">ready</div>
+          <div class="tube ready">
+            <span class="chip callback ghost"><span class="label">lambda f: self._read_waiting.pop(a, None)</span><span class="sub">dispatched</span></span>
+            <span class="chip callback">stalled_read._wakeup(future)</span>
+          </div>
+        </div>
+        <div>
+          <div class="queue-label">sleeping</div>
+          <div class="tube sleep"><span class="tube-empty">empty</span></div>
+        </div>
+      </div>
+      <div class="queue-label">_read_waiting</div>
+      <div class="waitbox">
+        <div class="wait-row"><span class="chip callback ghost"><span class="label">socket a → lambda: fut.set_result(None)</span><span class="sub">→ cleaned up</span></span></div>
+      </div>
+      <div class="futures-row">
+        <div class="pair">
+          <div class="taskcard"><span class="name">stalled_read(a)</span><span class="field">done = False</span><span class="field">_fut_waiter = Future(recv) →</span><span class="field">_must_cancel = False</span></div>
+          <span class="pair-arrow">→</span>
+          <div class="futurebox">
+            <span class="title">Future — recv(a, 1024)</span>
+            <span class="field">_done = True</span>
+            <span class="field">_cancelled = True</span>
+          </div>
+        </div>
+      </div>
+      <div class="console"><span class="line">[reader] waiting for data that will never arrive</span><br><span class="line">[timeout] 2s elapsed, cancelling read</span></div>
+    </section>
+
+    <section class="slide" id="s8">
+      <div class="eyebrow"><span>STEP 8</span><span class="clock">t = 2</span></div>
+      <pre class="trace">sched.run()
+  <span class="kw">&gt;</span> while self.ready:
+    <span class="kw">&gt;</span> func = self.ready.popleft()
+    <span class="kw">&gt;</span> func()
+      <span class="kw">&gt;</span> if future.cancelled():
+        <span class="kw">&gt;</span> self(exc=CancelledError())
+          <span class="kw">&gt;</span> Task.__call__(self, exc)
+            <span class="kw">&gt;</span> self._fut_waiter = None
+            <span class="kw">&gt;</span> if exc is not None:
+              <span class="kw">&gt;</span> result = self.coro.throw(exc)
+                <span class="kw">&gt;</span> raise CancelledError
+                <span class="kw">&gt;</span> except CancelledError:
+            <span class="kw">&gt;</span> except StopIteration:
+              <span class="kw">&gt;</span> self.done = True
+              <span class="kw">&gt;</span> return</pre>
+      <div class="annotation">The <code class="inline">_wakeup</code> method currently running refers to the <code class="inline">Task</code> holding the <code class="inline">stalled_read</code> coroutine. <br> The <code class="inline">stalled_read</code> coroutine resumes right after its <code class="inline">await fut</code>. <code class="inline">stalled_read</code> catches the cancellation there. <br> <code class="inline">stalled_read</code> then runs the rest of its coroutine to completion, raising <code class="inline">StopIteration</code> to finish normally.</div>
+      <div class="state-row">
+        <div>
+          <div class="queue-label">ready</div>
+          <div class="tube ready"><span class="chip callback ghost"><span class="label">stalled_read._wakeup(future)</span><span class="sub">dispatched</span></span></div>
+        </div>
+        <div>
+          <div class="queue-label">sleeping</div>
+          <div class="tube sleep"><span class="tube-empty">empty</span></div>
+        </div>
+      </div>
+      <div class="queue-label">_read_waiting</div>
+      <div class="waitbox"><span class="wait-empty">empty</span></div>
+      <div class="futures-row">
+        <div class="pair">
+          <div class="taskcard done"><span class="name">stalled_read(a)</span><span class="field">done = True</span><span class="field">_fut_waiter = None</span><span class="field">_must_cancel = False</span></div>
+        </div>
+      </div>
+      <div class="console"><span class="line">[reader] waiting for data that will never arrive</span><br><span class="line">[timeout] 2s elapsed, cancelling read</span><br><span class="line latest">[reader] cancelled, giving up on the read</span></div>
+    </section>
+
+  </div>
+</div>
+
+<div class="writeup">
+  <h2>Things worth noting while building this page</h2>
+
+  <div class="finding">
+    <div class="n">1</div>
+    <h3>The ready queue doesn't distinguish a Task from a plain function</h3>
+    <p>
+      As shown in STEP 4·5·6·7·8, whatever gets pulled in via <code>heapq.heappop(self.sleeping)[2]()</code> or
+      <code>sched.call_soon(lambda ...)</code> is not a <code>Task</code> — it's just a plain <code>lambda</code>.
+      <code>sched.run()</code>'s <code>while self.ready: func = self.ready.popleft(); func()</code> doesn't care what
+      it is, it just calls <code>func()</code> — which is exactly why this page draws Tasks as cards and plain
+      callbacks as pill-shaped chips, so the two stay visually distinct.
+    </p>
+  </div>
+
+  <div class="finding">
+    <div class="n">2</div>
+    <h3><code>_fut_waiter</code> is the sole link cancellation relies on</h3>
+    <p>
+      <code>Task.cancel()</code> is just two lines: <code>if self._fut_waiter is not None: return self._fut_waiter.cancel()</code>.
+      It doesn't need to know what this Task is currently waiting on — a socket read, a sleep, anything else — it
+      just cancels that one Future, and <code>_run_callbacks()</code> takes care of the rest. That's the core payoff
+      of introducing Future, in contrast to <code>cancel_demo.py</code>'s <code>waiting_kind</code>/<code>waiting_key</code>
+      approach.
+    </p>
+  </div>
+
+  <div class="finding">
+    <div class="n">3</div>
+    <h3>Callbacks run in registration order, and always one turn late</h3>
+    <p>
+      <code>Future._run_callbacks()</code> doesn't call callbacks immediately — it only ever schedules them onto
+      <code>ready</code> via <code>sched.call_soon(lambda cb=cb: cb(self))</code>. In STEP 6, a single call to
+      <code>_fut_waiter.cancel()</code> schedules two callbacks at once (cleanup and <code>_wakeup</code>), but they
+      actually run split across STEP 7 and 8, on the next spins of <code>while self.ready</code>.
+    </p>
+  </div>
+
+  <div class="finding">
+    <div class="n">4</div>
+    <h3><code>_wakeup</code> branches between a result and a cancellation in the same function</h3>
+    <p>
+      <code>Task._wakeup(future)</code> uses a single check, <code>future.cancelled()</code>, to decide between a
+      normal resume (<code>self()</code>) and a cancelled resume (<code>self(exc=CancelledError())</code>). In STEP
+      6, <code>timeout_after</code> had <code>cancelled() == False</code> and was resumed the ordinary way via
+      <code>coro.send(None)</code>; in STEP 8, <code>stalled_read</code> had <code>cancelled() == True</code> and was
+      resumed via <code>coro.throw(exc)</code> instead — both paths are handled by the exact same
+      <code>_wakeup</code> code.
+    </p>
+  </div>
+</div>

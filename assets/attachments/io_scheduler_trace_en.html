@@ -1,0 +1,1094 @@
+<title>io_scheduler Execution Slides</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<style>
+  :root {
+    --bg: #eef1ef;
+    --surface: #ffffff;
+    --surface-2: #e2e7e3;
+    --border: #c7cec8;
+    --text: #1a2420;
+    --text-dim: #55625a;
+
+    --ready: #2f8f80;
+    --ready-bg: #d9efe9;
+    --sleep: #7c6aa8;
+    --sleep-bg: #e7e1f3;
+    --cur: #b5711d;
+    --cur-bg: #f6e6cc;
+    --io: #3f7ea6;
+    --io-bg: #dbe9f2;
+
+    --console-bg: #12181a;
+    --console-text: #d7c9a3;
+    --console-accent: #e0a640;
+
+    --code-bg: #f5f6f3;
+    --kw: #8a4b8f;
+
+    --font-display: ui-serif, Georgia, "Iowan Old Style", "Noto Serif KR", serif;
+    --font-mono: ui-monospace, "SF Mono", "Cascadia Code", "D2Coding", Consolas, monospace;
+    --font-ui: -apple-system, BlinkMacSystemFont, "Pretendard", "Apple SD Gothic Neo", sans-serif;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #12161a;
+      --surface: #171c21;
+      --surface-2: #1e252b;
+      --border: #2b333a;
+      --text: #e7ece7;
+      --text-dim: #9aa6a0;
+
+      --ready: #5fc2ae;
+      --ready-bg: #163a35;
+      --sleep: #a996d6;
+      --sleep-bg: #2c2440;
+      --cur: #e3a54c;
+      --cur-bg: #3a2c14;
+      --io: #6bb0dc;
+      --io-bg: #1c3444;
+
+      --console-bg: #0b0e0f;
+      --console-text: #e3d3a0;
+      --console-accent: #e3a54c;
+
+      --code-bg: #14181c;
+      --kw: #c98bd0;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #12161a;
+    --surface: #171c21;
+    --surface-2: #1e252b;
+    --border: #2b333a;
+    --text: #e7ece7;
+    --text-dim: #9aa6a0;
+
+    --ready: #5fc2ae;
+    --ready-bg: #163a35;
+    --sleep: #a996d6;
+    --sleep-bg: #2c2440;
+    --cur: #e3a54c;
+    --cur-bg: #3a2c14;
+    --io: #6bb0dc;
+    --io-bg: #1c3444;
+
+    --console-bg: #0b0e0f;
+    --console-text: #e3d3a0;
+    --console-accent: #e3a54c;
+
+    --code-bg: #14181c;
+    --kw: #c98bd0;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-ui);
+    line-height: 1.5;
+    padding: 2.25rem 1.5rem 4rem;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  h1 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(1.6rem, 2.4vw, 2.1rem);
+    margin: 0 0 0.3rem;
+    text-wrap: balance;
+    letter-spacing: -0.01em;
+  }
+  .subtitle {
+    color: var(--text-dim);
+    font-size: 0.95rem;
+    max-width: 66ch;
+    margin: 0 0 1.1rem;
+  }
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1.1rem;
+    font-size: 0.82rem;
+    color: var(--text-dim);
+    margin-bottom: 1.8rem;
+  }
+  .legend span.dot {
+    display: inline-block;
+    width: 0.55em;
+    height: 0.55em;
+    border-radius: 50%;
+    margin-right: 0.4em;
+  }
+  .dot.ready { background: var(--ready); }
+  .dot.sleep { background: var(--sleep); }
+  .dot.cur { background: var(--cur); }
+  .dot.io { background: var(--io); }
+  .dot.console { background: var(--console-accent); }
+
+  .layout {
+    display: grid;
+    grid-template-columns: 168px 1fr;
+    gap: 1.6rem;
+    align-items: start;
+  }
+  @media (max-width: 780px) {
+    .layout { grid-template-columns: 1fr; }
+    .toc { display: none; }
+  }
+
+  .toc {
+    position: sticky;
+    top: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    font-family: var(--font-mono);
+    font-size: 0.76rem;
+  }
+  .toc a {
+    color: var(--text-dim);
+    text-decoration: none;
+    padding: 0.25rem 0.4rem;
+    border-radius: 5px;
+    border-left: 2px solid transparent;
+  }
+  .toc a:hover { color: var(--text); border-left-color: var(--cur); background: var(--surface-2); }
+
+  .slides { display: flex; flex-direction: column; gap: 1.4rem; }
+
+  .slide {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.1rem 1.25rem 1.3rem;
+    scroll-margin-top: 1rem;
+  }
+
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-dim);
+    margin-bottom: 0.55rem;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.6rem;
+  }
+
+  .trace {
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    background: var(--code-bg);
+    border-radius: 8px;
+    padding: 0.6rem 0.85rem;
+    margin: 0 0 0.7rem;
+    white-space: pre;
+    overflow-x: auto;
+  }
+  .trace .kw { color: var(--kw); font-weight: 600; }
+  .trace .old { color: var(--text-dim); opacity: 0.6; }
+  .trace .old .kw { color: var(--text-dim); font-weight: 600; }
+
+  .annotation {
+    border-left: 3px solid var(--cur);
+    background: var(--cur-bg);
+    border-radius: 0 8px 8px 0;
+    padding: 0.55rem 0.8rem;
+    font-size: 0.86rem;
+    margin-bottom: 0.85rem;
+  }
+
+  .state-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr auto;
+    gap: 0.8rem;
+    align-items: stretch;
+    margin-bottom: 0.7rem;
+  }
+  .io-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.8rem;
+    margin-bottom: 0.85rem;
+  }
+  @media (max-width: 620px) {
+    .state-row, .io-row { grid-template-columns: 1fr; }
+  }
+
+  .queue-label {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-dim);
+    margin-bottom: 0.3rem;
+  }
+
+  .tube {
+    border-radius: 999px;
+    border: 1.5px solid var(--border);
+    padding: 0.5rem 0.65rem;
+    min-height: 2.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    overflow-x: auto;
+  }
+  .tube.ready { border-color: var(--ready); }
+  .tube.sleep { border-color: var(--sleep); }
+
+  .waitbox {
+    border: 1.5px solid var(--io);
+    border-radius: 8px;
+    padding: 0.5rem 0.65rem;
+    min-height: 2.5rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.4rem;
+  }
+  .wait-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: var(--font-mono);
+    font-size: 0.74rem;
+  }
+  .wait-row .fdlabel { color: var(--text-dim); white-space: nowrap; }
+  .wait-row .arrow { color: var(--text-dim); }
+
+  .chip {
+    font-family: var(--font-mono);
+    font-size: 0.76rem;
+    padding: 0.3rem 0.58rem;
+    border-radius: 999px;
+    white-space: nowrap;
+    flex: none;
+    line-height: 1.25;
+    overflow: hidden;
+  }
+  .chip.ready { background: var(--ready-bg); color: var(--ready); border: 1px solid var(--ready); }
+  .chip.sleep { background: var(--sleep-bg); color: var(--sleep); border: 1px solid var(--sleep); }
+  .chip.io { background: var(--io-bg); color: var(--io); border: 1px solid var(--io); }
+  .chip .sub { display: block; font-size: 0.66rem; opacity: 0.85; }
+  .tube-empty, .wait-empty { font-family: var(--font-mono); font-size: 0.76rem; color: var(--text-dim); }
+
+  .current-col { display: flex; flex-direction: column; align-items: center; min-width: 8.5rem; }
+  .send-label {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    color: var(--text-dim);
+    margin-bottom: 0.2rem;
+  }
+  .current-box {
+    border: 1.5px solid var(--cur);
+    border-radius: 8px;
+    padding: 0.5rem 0.9rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2.5rem;
+    font-family: var(--font-mono);
+    font-size: 0.84rem;
+    color: var(--cur);
+    background: var(--cur-bg);
+    flex: 1;
+  }
+  .current-box.empty { color: var(--text-dim); background: transparent; border-style: dashed; }
+  .current-box.ghost {
+    color: var(--text-dim);
+    background: transparent;
+    border-style: dashed;
+    border-color: var(--text-dim);
+    flex-direction: column;
+    gap: 0.05rem;
+    line-height: 1.2;
+  }
+  .current-box.ghost .label { text-decoration: line-through; text-decoration-color: var(--text-dim); }
+  .current-box.ghost .sub { font-size: 0.66rem; font-style: italic; opacity: 0.85; }
+
+  .console {
+    background: var(--console-bg);
+    color: var(--console-text);
+    border-radius: 8px;
+    padding: 0.6rem 0.85rem;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    margin-bottom: 0.85rem;
+  }
+  .console .line.latest { color: var(--console-accent); }
+
+  .caption { font-size: 0.88rem; color: var(--text-dim); margin: 0; }
+
+  .writeup {
+    margin-top: 2.6rem;
+    border-top: 1px solid var(--border);
+    padding-top: 1.6rem;
+  }
+  .writeup h2 { font-family: var(--font-display); font-size: 1.25rem; margin: 0 0 0.9rem; }
+  .writeup .finding { display: grid; grid-template-columns: 1.6rem 1fr; gap: 0.15rem 0.7rem; margin-bottom: 1.1rem; }
+  .writeup .finding .n { font-family: var(--font-mono); color: var(--cur); font-weight: 700; }
+  .writeup .finding h3 { grid-column: 2; font-size: 0.98rem; margin: 0 0 0.25rem; }
+  .writeup .finding p { grid-column: 2; margin: 0; color: var(--text-dim); font-size: 0.92rem; max-width: 68ch; }
+  .writeup .finding code { font-family: var(--font-mono); background: var(--surface-2); padding: 0.05em 0.35em; border-radius: 4px; color: var(--text); font-size: 0.9em; }
+
+  code.inline { font-family: var(--font-mono); background: var(--surface-2); padding: 0.05em 0.3em; border-radius: 4px; font-size: 0.92em; }
+
+  /* ghost slot: reused from yieldo_trace.html — a static mark for "this just
+     left this box", no motion, no JS. */
+  .chip.ghost {
+    background: transparent;
+    border: 1.5px dashed var(--text-dim);
+    color: var(--text-dim);
+    opacity: 0.62;
+  }
+  .chip.ghost .label { text-decoration: line-through; text-decoration-color: var(--text-dim); }
+  .chip.ghost .sub { opacity: 0.9; text-decoration: none; font-style: italic; }
+</style>
+
+<h1>io_scheduler Execution Slides</h1>
+<p class="subtitle">
+  How <code class="inline">io_scheduler.py</code>'s <code class="inline">Scheduler.run()</code> drives
+  <code class="inline">tcp_server</code> and <code class="inline">echo_handler</code> together with
+  <code class="inline">select()</code> and the <code class="inline">Task</code> wrapper — from one connection
+  coming in, through a client sending a message and getting a reply, covering one full request/response cycle,
+  laid out as a static page. (Same approach as the
+  <code class="inline">yieldo</code> execution slides.)
+</p>
+<div class="legend">
+  <span><span class="dot ready"></span>ready — Tasks waiting to run</span>
+  <span><span class="dot sleep"></span>sleeping — the timer heap, unused in this example</span>
+  <span><span class="dot cur"></span>current — being driven right now via send(None)</span>
+  <span><span class="dot io"></span>_read_waiting / _write_waiting — fd → callback (Task) dict</span>
+  <span><span class="dot console"></span>console — print() output</span>
+</div>
+
+<div class="layout">
+  <nav class="toc">
+    <a href="#s1">1. Initial state</a>
+    <a href="#s2">2. new_task(tcp_server)</a>
+    <a href="#s3">3. Dispatch → tcp_server</a>
+    <a href="#s4">4. Register accept()</a>
+    <a href="#s5">5. select blocks</a>
+    <a href="#s6">6. Connection → requeue</a>
+    <a href="#s7">7. accept() returns · print</a>
+    <a href="#s8">8. Create echo_handler</a>
+    <a href="#s9">9. echo_handler registers recv()</a>
+    <a href="#s10">10. select blocks (read)</a>
+    <a href="#s11">11. Message arrives → requeue</a>
+    <a href="#s12">12. recv() returns</a>
+    <a href="#s13">13. Register send()</a>
+    <a href="#s14">14. select blocks (write)</a>
+    <a href="#s15">15. Writable → requeue</a>
+    <a href="#s16">16. send() returns · recv() re-registered</a>
+  </nav>
+
+  <div class="slides">
+
+    <section class="slide" id="s1">
+      <div class="eyebrow"><span>STEP 1 — Initial state</span></div>
+      <div class="state-row">
+        <div>
+          <div class="queue-label">ready</div>
+          <div class="tube ready"><span class="tube-empty">empty</span></div>
+        </div>
+        <div>
+          <div class="queue-label">sleeping</div>
+          <div class="tube sleep"><span class="tube-empty">empty</span></div>
+        </div>
+        <div class="current-col">
+          <div class="queue-label">current</div>
+          <div class="current-box empty">undefined</div>
+        </div>
+      </div>
+      <div class="io-row">
+        <div>
+          <div class="queue-label">_read_waiting</div>
+          <div class="waitbox"><span class="wait-empty">empty</span></div>
+        </div>
+        <div>
+          <div class="queue-label">_write_waiting</div>
+          <div class="waitbox"><span class="wait-empty">empty</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" id="s2">
+      <div class="eyebrow"><span>STEP 2</span></div>
+      <pre class="trace">sched.new_task(tcp_server(("", 30000)))
+  <span class="kw">&gt;</span> self.ready.append(Task(coro))</pre>
+      <div class="annotation">
+        <b>Why Task exists</b> <br>
+        The ready queue needs to hold plain callback functions as well as coroutines, so the scheduler can drive
+        both uniformly with <code class="inline">func()</code> without caring which is which. <br>But a coroutine
+        object can't be called like a normal function. Calling <code class="inline">coro()</code> raises
+        <code class="inline">TypeError: 'coroutine' object is not callable</code> — it has to be driven with
+        <code class="inline">coro.send(None)</code> instead. <br>
+        To hide that difference from the scheduler, <code class="inline">Task</code> is a wrapper object that makes a
+        coroutine look like an ordinary callable function.
+      </div>
+      <div class="state-row">
+        <div>
+          <div class="queue-label">ready</div>
+          <div class="tube ready"><span class="chip ready">tcp_server(("", 30000))</span></div>
+        </div>
+        <div>
+          <div class="queue-label">sleeping</div>
+          <div class="tube sleep"><span class="tube-empty">empty</span></div>
+        </div>
+        <div class="current-col">
+          <div class="queue-label">current</div>
+          <div class="current-box empty">undefined</div>
+        </div>
+      </div>
+      <div class="io-row">
+        <div>
+          <div class="queue-label">_read_waiting</div>
+          <div class="waitbox"><span class="wait-empty">empty</span></div>
+        </div>
+        <div>
+          <div class="queue-label">_write_waiting</div>
+          <div class="waitbox"><span class="wait-empty">empty</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" id="s3">
+      <div class="eyebrow"><span>STEP 3</span></div>
+      <pre class="trace">sched.run()
+  <span class="kw">&gt;</span> while self.ready:
+    <span class="kw">&gt;</span> func = self.ready.popleft()
+    <span class="kw">&gt;</span> func()
+      <span class="kw">&gt;</span> Task.__call__(self):
+        <span class="kw">&gt;</span> sched.current = self
+        <span class="kw">&gt;</span> self.coro.send(None)</pre>
+      <div class="state-row">
+        <div>
+          <div class="queue-label">ready</div>
+          <div class="tube ready"><span class="chip ready ghost"><span class="label">tcp_server(("", 30000))</span><span class="sub">→ current</span></span></div>
+        </div>
+        <div>
+          <div class="queue-label">sleeping</div>
+          <div class="tube sleep"><span class="tube-empty">empty</span></div>
+        </div>
+        <div class="current-col">
+          <div class="send-label">send →</div>
+          <div class="current-box">tcp_server(("", 30000))</div>
+        </div>
+      </div>
+      <div class="io-row">
+        <div>
+          <div class="queue-label">_read_waiting</div>
+          <div class="waitbox"><span class="wait-empty">empty</span></div>
+        </div>
+        <div>
+          <div class="queue-label">_write_waiting</div>
+          <div class="waitbox"><span class="wait-empty">empty</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" id="s4">
+      <div class="eyebrow"><span>STEP 4</span></div>
+      <pre class="trace"><span class="old">sched.run()
+  <span class="kw">&gt;</span> while self.ready:
+    <span class="kw">&gt;</span> func()
+      <span class="kw">&gt;</span> Task.__call__(self):
+        <span class="kw">&gt;</span> self.coro.send(None)</span>
+          <span class="kw">&gt;</span> while True:
+            <span class="kw">&gt;</span> client, addr = await sched.accept(sock)
+              <span class="kw">&gt;</span> self.read_wait(sock, self.current)
+              <span class="kw">&gt;</span> self.current = None
+              <span class="kw">&gt;</span> await switch()</pre>
+      <div class="annotation"><code class="inline">accept()</code> registers the current <code class="inline">self.current</code> Task as the listening socket's callback, then clears <code class="inline">self.current</code> and hands control back.</div>
+      <div class="state-row">
+        <div>
+          <div class="queue-label">ready</div>
+          <div class="tube ready"><span class="tube-empty">empty</span></div>
+        </div>
+        <div>
+          <div class="queue-label">sleeping</div>
+          <div class="tube sleep"><span class="tube-empty">empty</span></div>
+        </div>
+        <div class="current-col">
+          <div class="queue-label">current</div>
+          <div class="current-box ghost"><span class="label">tcp_server(("", 30000))</span><span class="sub">→ None</span></div>
+        </div>
+      </div>
+      <div class="io-row">
+        <div>
+          <div class="queue-label">_read_waiting</div>
+          <div class="waitbox">
+            <div class="wait-row"><span class="fdlabel">listening socket →</span><span class="chip io">tcp_server(("", 30000))</span></div>
+          </div>
+        </div>
+        <div>
+          <div class="queue-label">_write_waiting</div>
+          <div class="waitbox"><span class="wait-empty">empty</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" id="s5">
+      <div class="eyebrow"><span>STEP 5</span></div>
+      <pre class="trace">sched.run()
+  <span class="kw">&gt;</span> while self.ready or self.sleeping or self._read_waiting or self._write_waiting:
+    <span class="kw">&gt;</span> if not self.ready:
+      <span class="kw">&gt;</span> can_read, can_write, _ = select(self._read_waiting, self._write_waiting, [], timeout)</pre>
+      <div class="annotation">select blocks until one of the sockets registered in <code class="inline">_read_waiting</code>/<code class="inline">_write_waiting</code> is ready. <br>Here, it's waiting for a client to connect.</div>
+      <div class="state-row">
+        <div>
+          <div class="queue-label">ready</div>
+          <div class="tube ready"><span class="tube-empty">empty</span></div>
+        </div>
+        <div>
+          <div class="queue-label">sleeping</div>
+          <div class="tube sleep"><span class="tube-empty">empty</span></div>
+        </div>
+        <div class="current-col">
+          <div class="queue-label">current</div>
+          <div class="current-box empty">empty</div>
+        </div>
+      </div>
+      <div class="io-row">
+        <div>
+          <div class="queue-label">_read_waiting</div>
+          <div class="waitbox">
+            <div class="wait-row"><span class="fdlabel">listening socket →</span><span class="chip io">tcp_server(("", 30000))</span></div>
+          </div>
+        </div>
+        <div>
+          <div class="queue-label">_write_waiting</div>
+          <div class="waitbox"><span class="wait-empty">empty</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" id="s6">
+      <div class="eyebrow"><span>STEP 6</span></div>
+      <pre class="trace"><span class="old">sched.run()
+  <span class="kw">&gt;</span> while self.ready or ...:
+    <span class="kw">&gt;</span> if not self.ready:</span>
+      <span class="kw">&gt;</span> can_read, can_write, _ = select(...)   <span class="kw">#</span> client connects → readable
+      <span class="kw">&gt;</span> for fd in can_read:
+        <span class="kw">&gt;</span> self.ready.append(self._read_waiting.pop(fd))</pre>
+      <div class="annotation">Once a client connects and the listening socket becomes readable, the select block unblocks and the popped Task is pushed onto the <code class="inline">ready</code> queue.</div>
+      <div class="state-row">
+        <div>
+          <div class="queue-label">ready</div>
+          <div class="tube ready"><span class="chip ready">tcp_server(("", 30000))</span></div>
+        </div>
+        <div>
+          <div class="queue-label">sleeping</div>
+          <div class="tube sleep"><span class="tube-empty">empty</span></div>
+        </div>
+        <div class="current-col">
+          <div class="queue-label">current</div>
+          <div class="current-box empty">empty</div>
+        </div>
+      </div>
+      <div class="io-row">
+        <div>
+          <div class="queue-label">_read_waiting</div>
+          <div class="waitbox">
+            <div class="wait-row"><span class="fdlabel">listening socket →</span><span class="chip io ghost"><span class="label">tcp_server(("", 30000))</span><span class="sub">→ ready</span></span></div>
+          </div>
+        </div>
+        <div>
+          <div class="queue-label">_write_waiting</div>
+          <div class="waitbox"><span class="wait-empty">empty</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" id="s7">
+      <div class="eyebrow"><span>STEP 7</span></div>
+      <pre class="trace">sched.run()
+  <span class="kw">&gt;</span> while self.ready:
+    <span class="kw">&gt;</span> func = self.ready.popleft()
+    <span class="kw">&gt;</span> func()
+      <span class="kw">&gt;</span> Task.__call__(self):
+        <span class="kw">&gt;</span> sched.current = self
+        <span class="kw">&gt;</span> self.coro.send(None)
+          <span class="kw">&gt;</span> return sock.accept()   <span class="kw">#</span> returns the client socket tuple
+        <span class="kw">&gt;</span> print("Connection from", addr)</pre>
+      <div class="annotation">Code execution resumes right after accept's await switch()</div>
+      <div class="state-row">
+        <div>
+          <div class="queue-label">ready</div>
+          <div class="tube ready"><span class="chip ready ghost"><span class="label">tcp_server(("", 30000))</span><span class="sub">→ current</span></span></div>
+        </div>
+        <div>
+          <div class="queue-label">sleeping</div>
+          <div class="tube sleep"><span class="tube-empty">empty</span></div>
+        </div>
+        <div class="current-col">
+          <div class="send-label">send →</div>
+          <div class="current-box">tcp_server(("", 30000))</div>
+        </div>
+      </div>
+      <div class="io-row">
+        <div>
+          <div class="queue-label">_read_waiting</div>
+          <div class="waitbox"><span class="wait-empty">empty</span></div>
+        </div>
+        <div>
+          <div class="queue-label">_write_waiting</div>
+          <div class="waitbox"><span class="wait-empty">empty</span></div>
+        </div>
+      </div>
+      <div class="console"><span class="line latest">Connection from ('127.0.0.1', 52110)</span></div>
+    </section>
+
+    <section class="slide" id="s8">
+      <div class="eyebrow"><span>STEP 8</span></div>
+      <pre class="trace"><span class="old">sched.run()
+  <span class="kw">&gt;</span> while self.ready:
+    <span class="kw">&gt;</span> func()
+      <span class="kw">&gt;</span> Task.__call__(self):
+        <span class="kw">&gt;</span> self.coro.send(None)</span>
+          <span class="kw">&gt;</span> sched.new_task(echo_handler(client))
+            <span class="kw">&gt;</span> self.ready.append(Task(echo_handler(client)))
+          <span class="kw">&gt;</span> client, addr = await sched.accept(sock)
+            <span class="kw">&gt;</span> self.read_wait(sock, self.current)
+            <span class="kw">&gt;</span> self.current = None
+            <span class="kw">&gt;</span> await switch()</pre>
+      <div class="annotation">Inside its <code class="inline">while True</code> loop, tcp_server registers the listening socket in <code class="inline">_read_waiting</code> again to wait for the next connection. Meanwhile, the freshly created <code class="inline">echo_handler(client)</code> waits its turn in ready.</div>
+      <div class="state-row">
+        <div>
+          <div class="queue-label">ready</div>
+          <div class="tube ready"><span class="chip ready">echo_handler(client)</span></div>
+        </div>
+        <div>
+          <div class="queue-label">sleeping</div>
+          <div class="tube sleep"><span class="tube-empty">empty</span></div>
+        </div>
+        <div class="current-col">
+          <div class="queue-label">current</div>
+          <div class="current-box ghost"><span class="label">tcp_server(("", 30000))</span><span class="sub">→ None</span></div>
+        </div>
+      </div>
+      <div class="io-row">
+        <div>
+          <div class="queue-label">_read_waiting</div>
+          <div class="waitbox">
+            <div class="wait-row"><span class="fdlabel">listening socket →</span><span class="chip io">tcp_server(("", 30000))</span></div>
+          </div>
+        </div>
+        <div>
+          <div class="queue-label">_write_waiting</div>
+          <div class="waitbox"><span class="wait-empty">empty</span></div>
+        </div>
+      </div>
+      <div class="console"><span class="line">Connection from ('127.0.0.1', 52110)</span></div>
+    </section>
+
+    <section class="slide" id="s9">
+      <div class="eyebrow"><span>STEP 9</span></div>
+      <pre class="trace">sched.run()
+  <span class="kw">&gt;</span> while self.ready:
+    <span class="kw">&gt;</span> func = self.ready.popleft()
+    <span class="kw">&gt;</span> func()
+      <span class="kw">&gt;</span> Task.__call__(self):
+        <span class="kw">&gt;</span> sched.current = self
+        <span class="kw">&gt;</span> self.coro.send(None)
+          <span class="kw">&gt;</span> while True:
+            <span class="kw">&gt;</span> data = await sched.recv(sock, 10000)
+              <span class="kw">&gt;</span> self.read_wait(sock, self.current)
+              <span class="kw">&gt;</span> self.current = None
+              <span class="kw">&gt;</span> await switch()</pre>
+      <div class="annotation">echo_handler also registers itself as the client socket's callback Task via <code class="inline">recv()</code>.</div>
+      <div class="state-row">
+        <div>
+          <div class="queue-label">ready</div>
+          <div class="tube ready"><span class="chip ready ghost"><span class="label">echo_handler(client)</span><span class="sub">→ current</span></span></div>
+        </div>
+        <div>
+          <div class="queue-label">sleeping</div>
+          <div class="tube sleep"><span class="tube-empty">empty</span></div>
+        </div>
+        <div class="current-col">
+          <div class="queue-label">current</div>
+          <div class="current-box ghost"><span class="label">echo_handler(client)</span><span class="sub">→ None</span></div>
+        </div>
+      </div>
+      <div class="io-row">
+        <div>
+          <div class="queue-label">_read_waiting</div>
+          <div class="waitbox">
+            <div class="wait-row"><span class="fdlabel">listening socket →</span><span class="chip io">tcp_server(("", 30000))</span></div>
+            <div class="wait-row"><span class="fdlabel">client socket →</span><span class="chip io">echo_handler(client)</span></div>
+          </div>
+        </div>
+        <div>
+          <div class="queue-label">_write_waiting</div>
+          <div class="waitbox"><span class="wait-empty">empty</span></div>
+        </div>
+      </div>
+      <div class="console"><span class="line">Connection from ('127.0.0.1', 52110)</span></div>
+    </section>
+
+    <section class="slide" id="s10">
+      <div class="eyebrow"><span>STEP 10</span></div>
+      <pre class="trace">sched.run()
+  <span class="kw">&gt;</span> while self._read_waiting or self._write_waiting or ...:
+    <span class="kw">&gt;</span> if not self.ready:
+      <span class="kw">&gt;</span> can_read, can_write, _ = select(self._read_waiting, self._write_waiting, [], timeout)</pre>
+      <div class="annotation">select blocks until the socket registered in <code class="inline">_read_waiting</code> becomes readable <br> Here, it's waiting for the client to send a message</div>
+      <div class="state-row">
+        <div>
+          <div class="queue-label">ready</div>
+          <div class="tube ready"><span class="tube-empty">empty</span></div>
+        </div>
+        <div>
+          <div class="queue-label">sleeping</div>
+          <div class="tube sleep"><span class="tube-empty">empty</span></div>
+        </div>
+        <div class="current-col">
+          <div class="queue-label">current</div>
+          <div class="current-box empty">empty</div>
+        </div>
+      </div>
+      <div class="io-row">
+        <div>
+          <div class="queue-label">_read_waiting</div>
+          <div class="waitbox">
+            <div class="wait-row"><span class="fdlabel">listening socket →</span><span class="chip io">tcp_server(("", 30000))</span></div>
+            <div class="wait-row"><span class="fdlabel">client socket →</span><span class="chip io">echo_handler(client)</span></div>
+          </div>
+        </div>
+        <div>
+          <div class="queue-label">_write_waiting</div>
+          <div class="waitbox"><span class="wait-empty">empty</span></div>
+        </div>
+      </div>
+      <div class="console"><span class="line">Connection from ('127.0.0.1', 52110)</span></div>
+    </section>
+
+    <section class="slide" id="s11">
+      <div class="eyebrow"><span>STEP 11</span></div>
+      <pre class="trace"><span class="old">sched.run()
+  <span class="kw">&gt;</span> while self._read_waiting or self._write_waiting or ...:
+    <span class="kw">&gt;</span> if not self.ready:</span>
+      <span class="kw">&gt;</span> can_read, can_write, _ = select(...)   <span class="kw">#</span> client sends a message → readable
+      <span class="kw">&gt;</span> for fd in can_read:
+        <span class="kw">&gt;</span> self.ready.append(self._read_waiting.pop(fd))</pre>
+      <div class="annotation">Once the client socket becomes readable, the select block unblocks and the popped callback Task is pushed onto the <code class="inline">ready</code> queue. </div>
+      <div class="state-row">
+        <div>
+          <div class="queue-label">ready</div>
+          <div class="tube ready"><span class="chip ready">echo_handler(client)</span></div>
+        </div>
+        <div>
+          <div class="queue-label">sleeping</div>
+          <div class="tube sleep"><span class="tube-empty">empty</span></div>
+        </div>
+        <div class="current-col">
+          <div class="queue-label">current</div>
+          <div class="current-box empty">empty</div>
+        </div>
+      </div>
+      <div class="io-row">
+        <div>
+          <div class="queue-label">_read_waiting</div>
+          <div class="waitbox">
+            <div class="wait-row"><span class="fdlabel">listening socket →</span><span class="chip io">tcp_server(("", 30000))</span></div>
+            <div class="wait-row"><span class="fdlabel">client socket →</span><span class="chip io ghost"><span class="label">echo_handler(client)</span><span class="sub">→ ready</span></span></div>
+          </div>
+        </div>
+        <div>
+          <div class="queue-label">_write_waiting</div>
+          <div class="waitbox"><span class="wait-empty">empty</span></div>
+        </div>
+      </div>
+      <div class="console"><span class="line">Connection from ('127.0.0.1', 52110)</span></div>
+    </section>
+
+    <section class="slide" id="s12">
+      <div class="eyebrow"><span>STEP 12</span></div>
+      <pre class="trace">sched.run()
+  <span class="kw">&gt;</span> while self.ready:
+    <span class="kw">&gt;</span> func = self.ready.popleft()
+    <span class="kw">&gt;</span> func()
+      <span class="kw">&gt;</span> Task.__call__(self):
+        <span class="kw">&gt;</span> sched.current = self
+        <span class="kw">&gt;</span> self.coro.send(None)
+        <span class="kw">&gt;</span> data = await sched.recv(sock, 10000)
+          <span class="kw">&gt;</span> return sock.recv(maxbytes)   <span class="kw">#</span> returns the data the client sent</pre>
+      <div class="annotation">Code execution resumes right after recv's await switch().</div>
+      <div class="state-row">
+        <div>
+          <div class="queue-label">ready</div>
+          <div class="tube ready"><span class="chip ready ghost"><span class="label">echo_handler(client)</span><span class="sub">→ current</span></span></div>
+        </div>
+        <div>
+          <div class="queue-label">sleeping</div>
+          <div class="tube sleep"><span class="tube-empty">empty</span></div>
+        </div>
+        <div class="current-col">
+          <div class="send-label">send →</div>
+          <div class="current-box">echo_handler(client)</div>
+        </div>
+      </div>
+      <div class="io-row">
+        <div>
+          <div class="queue-label">_read_waiting</div>
+          <div class="waitbox">
+            <div class="wait-row"><span class="fdlabel">listening socket →</span><span class="chip io">tcp_server(("", 30000))</span></div>
+          </div>
+        </div>
+        <div>
+          <div class="queue-label">_write_waiting</div>
+          <div class="waitbox"><span class="wait-empty">empty</span></div>
+        </div>
+      </div>
+      <div class="console"><span class="line">Connection from ('127.0.0.1', 52110)</span></div>
+    </section>
+
+    <section class="slide" id="s13">
+      <div class="eyebrow"><span>STEP 13</span></div>
+      <pre class="trace"><span class="old">sched.run()
+  <span class="kw">&gt;</span> while self.ready:
+    <span class="kw">&gt;</span> func()
+      <span class="kw">&gt;</span> Task.__call__(self):
+        <span class="kw">&gt;</span> self.coro.send(None)
+        <span class="kw">&gt;</span> data = await sched.recv(sock, 10000)
+          <span class="kw">&gt;</span> return sock.recv(maxbytes)   <span class="kw">#</span> returns the data the client sent </span>
+        <span class="kw">&gt;</span> await sched.send(sock, b"Got:" + data)
+          <span class="kw">&gt;</span> self.write_wait(sock, self.current)
+          <span class="kw">&gt;</span> self.current = None
+          <span class="kw">&gt;</span> await switch()</pre>
+      <div class="state-row">
+        <div>
+          <div class="queue-label">ready</div>
+          <div class="tube ready"><span class="tube-empty">empty</span></div>
+        </div>
+        <div>
+          <div class="queue-label">sleeping</div>
+          <div class="tube sleep"><span class="tube-empty">empty</span></div>
+        </div>
+        <div class="current-col">
+          <div class="queue-label">current</div>
+          <div class="current-box ghost"><span class="label">echo_handler(client)</span><span class="sub">→ None</span></div>
+        </div>
+      </div>
+      <div class="io-row">
+        <div>
+          <div class="queue-label">_read_waiting</div>
+          <div class="waitbox">
+            <div class="wait-row"><span class="fdlabel">listening socket →</span><span class="chip io">tcp_server(("", 30000))</span></div>
+          </div>
+        </div>
+        <div>
+          <div class="queue-label">_write_waiting</div>
+          <div class="waitbox">
+            <div class="wait-row"><span class="fdlabel">client socket →</span><span class="chip io">echo_handler(client)</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="console"><span class="line">Connection from ('127.0.0.1', 52110)</span></div>
+    </section>
+
+    <section class="slide" id="s14">
+      <div class="eyebrow"><span>STEP 14</span></div>
+      <pre class="trace">sched.run()
+  <span class="kw">&gt;</span> while self._write_waiting or ...:
+    <span class="kw">&gt;</span> if not self.ready:
+      <span class="kw">&gt;</span> can_read, can_write, _ = select(self._read_waiting, self._write_waiting, [], timeout)</pre>
+      <div class="annotation">select blocks until the socket registered in <code class="inline">_write_waiting</code> becomes writable. <br> Here, it's waiting until it can send the reply back to the client</div>
+      <div class="state-row">
+        <div>
+          <div class="queue-label">ready</div>
+          <div class="tube ready"><span class="tube-empty">empty</span></div>
+        </div>
+        <div>
+          <div class="queue-label">sleeping</div>
+          <div class="tube sleep"><span class="tube-empty">empty</span></div>
+        </div>
+        <div class="current-col">
+          <div class="queue-label">current</div>
+          <div class="current-box empty">empty</div>
+        </div>
+      </div>
+      <div class="io-row">
+        <div>
+          <div class="queue-label">_read_waiting</div>
+          <div class="waitbox">
+            <div class="wait-row"><span class="fdlabel">listening socket →</span><span class="chip io">tcp_server(("", 30000))</span></div>
+          </div>
+        </div>
+        <div>
+          <div class="queue-label">_write_waiting</div>
+          <div class="waitbox">
+            <div class="wait-row"><span class="fdlabel">client socket →</span><span class="chip io">echo_handler(client)</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="console"><span class="line">Connection from ('127.0.0.1', 52110)</span></div>
+    </section>
+
+    <section class="slide" id="s15">
+      <div class="eyebrow"><span>STEP 15</span></div>
+      <pre class="trace"><span class="old">sched.run()
+  <span class="kw">&gt;</span> while self._write_waiting or ...:
+    <span class="kw">&gt;</span> if not self.ready:</span>
+      <span class="kw">&gt;</span> can_read, can_write, _ = select(...)   <span class="kw">#</span> can send to the client → writable
+      <span class="kw">&gt;</span> for fd in can_write:
+        <span class="kw">&gt;</span> self.ready.append(self._write_waiting.pop(fd))</pre>
+      <div class="annotation">Once the socket becomes writable, select unblocks and the popped Task is pushed onto the <code class="inline">ready</code> queue. </div>
+      <div class="state-row">
+        <div>
+          <div class="queue-label">ready</div>
+          <div class="tube ready"><span class="chip ready">echo_handler(client)</span></div>
+        </div>
+        <div>
+          <div class="queue-label">sleeping</div>
+          <div class="tube sleep"><span class="tube-empty">empty</span></div>
+        </div>
+        <div class="current-col">
+          <div class="queue-label">current</div>
+          <div class="current-box empty">empty</div>
+        </div>
+      </div>
+      <div class="io-row">
+        <div>
+          <div class="queue-label">_read_waiting</div>
+          <div class="waitbox">
+            <div class="wait-row"><span class="fdlabel">listening socket →</span><span class="chip io">tcp_server(("", 30000))</span></div>
+          </div>
+        </div>
+        <div>
+          <div class="queue-label">_write_waiting</div>
+          <div class="waitbox">
+            <div class="wait-row"><span class="fdlabel">client socket →</span><span class="chip io ghost"><span class="label">echo_handler(client)</span><span class="sub">→ ready</span></span></div>
+          </div>
+        </div>
+      </div>
+      <div class="console"><span class="line">Connection from ('127.0.0.1', 52110)</span></div>
+    </section>
+
+    <section class="slide" id="s16">
+      <div class="eyebrow"><span>STEP 16</span></div>
+      <pre class="trace">sched.run()
+  <span class="kw">&gt;</span> while self.ready:
+    <span class="kw">&gt;</span> func = self.ready.popleft()
+    <span class="kw">&gt;</span> func()
+      <span class="kw">&gt;</span> Task.__call__(self):
+        <span class="kw">&gt;</span> sched.current = self
+        <span class="kw">&gt;</span> self.coro.send(None)
+              <span class="kw">&gt;</span> return sock.send(data)
+
+          <span class="kw">&gt;</span> while True:
+            <span class="kw">&gt;</span> data = await sched.recv(sock, 10000)
+              <span class="kw">&gt;</span> self.read_wait(sock, self.current)
+              <span class="kw">&gt;</span> self.current = None
+              <span class="kw">&gt;</span> await switch()</pre>
+      <div class="annotation">Code execution resumes right after send's await switch(). <br>echo_handler loops back through <code class="inline">while True</code> and calls recv() again to wait for the next message. <br><br> From here, it blocks in select until either a new client connects or the existing client sends another message.</div>
+      <div class="state-row">
+        <div>
+          <div class="queue-label">ready</div>
+          <div class="tube ready"><span class="chip ready ghost"><span class="label">echo_handler(client)</span><span class="sub">→ current</span></span></div>
+        </div>
+        <div>
+          <div class="queue-label">sleeping</div>
+          <div class="tube sleep"><span class="tube-empty">empty</span></div>
+        </div>
+        <div class="current-col">
+          <div class="queue-label">current</div>
+          <div class="current-box ghost"><span class="label">echo_handler(client)</span><span class="sub">→ None</span></div>
+        </div>
+      </div>
+      <div class="io-row">
+        <div>
+          <div class="queue-label">_read_waiting</div>
+          <div class="waitbox">
+            <div class="wait-row"><span class="fdlabel">listening socket →</span><span class="chip io">tcp_server(("", 30000))</span></div>
+            <div class="wait-row"><span class="fdlabel">client socket →</span><span class="chip io">echo_handler(client)</span></div>
+          </div>
+        </div>
+        <div>
+          <div class="queue-label">_write_waiting</div>
+          <div class="waitbox"><span class="wait-empty">empty</span></div>
+        </div>
+      </div>
+      <div class="console"><span class="line">Connection from ('127.0.0.1', 52110)</span></div>
+    </section>
+
+  </div>
+</div>
+
+<div class="writeup">
+  <h2>Things worth noting while building this page</h2>
+
+  <div class="finding">
+    <div class="n">1</div>
+    <h3><code>self.current</code> is not in <code>__init__</code></h3>
+    <p>
+      <code>Scheduler.__init__</code> only initializes <code>ready</code>·<code>sleeping</code>·<code>_read_waiting</code>·<code>_write_waiting</code>
+      — it never declares <code>current</code>. Python doesn't require attributes to be pre-declared, so this
+      attribute only comes into existence in STEP 3, the first time <code>Task.__call__</code> runs
+      <code>sched.current = self</code>. Reading <code>self.current</code> before that would have raised
+      <code>AttributeError</code>, but <code>sleep</code>/<code>recv</code>/<code>send</code>/<code>accept</code>
+      are only ever called from inside an already-running Task, so that path never actually happens.
+    </p>
+  </div>
+
+  <div class="finding">
+    <div class="n">2</div>
+    <h3>Unlike yieldo.py, everything gets drained in one go</h3>
+    <p>
+      yieldo.py's <code>run()</code> dispatched only <b>one</b> item per outer-loop turn, but this scheduler drains
+      things in bulk in three separate places — a single <code>select()</code> call moves every ready fd over with
+      <code>for fd in can_read</code>/<code>can_write</code>, every expired timer gets pulled out with
+      <code>while self.sleeping: ... else: break</code>, and then <code>while self.ready:</code> runs through
+      everything piled up in ready. That's also why the newly created <code>echo_handler</code> in STEP 8 runs right
+      away inside that same <code>while self.ready:</code> loop instead of waiting for the next outer iteration —
+      although in this particular example, <code>echo_handler</code> actually ends up running in STEP 9, not STEP 8,
+      because tcp_server is still inside <code>while self.ready:</code> and echo_handler has only just been added to
+      ready (it gets popped on the next iteration).
+    </p>
+  </div>
+
+  <div class="finding">
+    <div class="n">3</div>
+    <h3><code>sched.current</code> and <code>self.current</code> are the same thing</h3>
+    <p>
+      <code>Task.__call__</code> lives outside the class, so it writes to the global <code>sched</code> directly as
+      <code>sched.current = self</code>. The <code>Scheduler</code>'s own methods
+      (<code>sleep</code>/<code>recv</code>/<code>send</code>/<code>accept</code>), on the other hand, write
+      <code>self.current</code>. It's easy to get confused, but <code>sched = Scheduler()</code> is the only
+      instance and these methods always run with <code>self is sched</code>, so both spellings point at exactly the
+      same attribute.
+    </p>
+  </div>
+
+  <div class="finding">
+    <div class="n">4</div>
+    <h3>Registration (<code>read_wait</code>) and consumption (select's pop) are a matched pair</h3>
+    <p>
+      All three of <code>accept</code>/<code>recv</code>/<code>send</code> follow the exact same pattern — "put the
+      current Task into <code>_read_waiting</code> or <code>_write_waiting</code>, clear <code>current</code>, and
+      hand control back." That symmetry is why the <code>listening socket → tcp_server</code> entry registered in
+      STEP 4 comes back out exactly via <code>self._read_waiting.pop(fd)</code> in STEP 6 —
+      <code>_read_waiting</code> is just a plain dict keyed by fd, with no ordering guarantee of its own.
+    </p>
+  </div>
+
+  <div class="finding">
+    <div class="n">5</div>
+    <h3>The request/response cycle closes exactly one loop</h3>
+    <p>
+      The state where echo_handler registered itself in <code>_read_waiting</code> via <code>recv()</code> in STEP 9
+      is identical to the state after <code>send()</code> finishes and <code>recv()</code> is called again in STEP
+      16 (<code>listening socket → tcp_server</code>, <code>client socket → echo_handler(client)</code>). The
+      <code>recv → send → recv</code> loop inside <code>while True</code> lands back on exactly the same spot in the
+      state diagram, and STEP 9 through 16 repeat verbatim until the client disconnects.
+    </p>
+  </div>
+</div>

@@ -1,0 +1,643 @@
+<title>yieldo Execution Slides</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<style>
+  :root {
+    --bg: #eef1ef;
+    --surface: #ffffff;
+    --surface-2: #e2e7e3;
+    --border: #c7cec8;
+    --text: #1a2420;
+    --text-dim: #55625a;
+
+    --ready: #2f8f80;
+    --ready-bg: #d9efe9;
+    --sleep: #7c6aa8;
+    --sleep-bg: #e7e1f3;
+    --cur: #b5711d;
+    --cur-bg: #f6e6cc;
+
+    --console-bg: #12181a;
+    --console-text: #d7c9a3;
+    --console-accent: #e0a640;
+
+    --code-bg: #f5f6f3;
+    --kw: #8a4b8f;
+
+    --font-display: ui-serif, Georgia, "Iowan Old Style", "Noto Serif KR", serif;
+    --font-mono: ui-monospace, "SF Mono", "Cascadia Code", "D2Coding", Consolas, monospace;
+    --font-ui: -apple-system, BlinkMacSystemFont, "Pretendard", "Apple SD Gothic Neo", sans-serif;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #12161a;
+      --surface: #171c21;
+      --surface-2: #1e252b;
+      --border: #2b333a;
+      --text: #e7ece7;
+      --text-dim: #9aa6a0;
+
+      --ready: #5fc2ae;
+      --ready-bg: #163a35;
+      --sleep: #a996d6;
+      --sleep-bg: #2c2440;
+      --cur: #e3a54c;
+      --cur-bg: #3a2c14;
+
+      --console-bg: #0b0e0f;
+      --console-text: #e3d3a0;
+      --console-accent: #e3a54c;
+
+      --code-bg: #14181c;
+      --kw: #c98bd0;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #12161a;
+    --surface: #171c21;
+    --surface-2: #1e252b;
+    --border: #2b333a;
+    --text: #e7ece7;
+    --text-dim: #9aa6a0;
+
+    --ready: #5fc2ae;
+    --ready-bg: #163a35;
+    --sleep: #a996d6;
+    --sleep-bg: #2c2440;
+    --cur: #e3a54c;
+    --cur-bg: #3a2c14;
+
+    --console-bg: #0b0e0f;
+    --console-text: #e3d3a0;
+    --console-accent: #e3a54c;
+
+    --code-bg: #14181c;
+    --kw: #c98bd0;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-ui);
+    line-height: 1.5;
+    padding: 2.25rem 1.5rem 4rem;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  h1 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(1.6rem, 2.4vw, 2.1rem);
+    margin: 0 0 0.3rem;
+    text-wrap: balance;
+    letter-spacing: -0.01em;
+  }
+  .subtitle {
+    color: var(--text-dim);
+    font-size: 0.95rem;
+    max-width: 64ch;
+    margin: 0 0 1.1rem;
+  }
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1.1rem;
+    font-size: 0.82rem;
+    color: var(--text-dim);
+    margin-bottom: 1.8rem;
+  }
+  .legend span.dot {
+    display: inline-block;
+    width: 0.55em;
+    height: 0.55em;
+    border-radius: 50%;
+    margin-right: 0.4em;
+  }
+  .dot.ready { background: var(--ready); }
+  .dot.sleep { background: var(--sleep); }
+  .dot.cur { background: var(--cur); }
+  .dot.console { background: var(--console-accent); }
+
+  .layout {
+    display: grid;
+    grid-template-columns: 150px 1fr;
+    gap: 1.6rem;
+    align-items: start;
+  }
+  @media (max-width: 780px) {
+    .layout { grid-template-columns: 1fr; }
+    .toc { display: none; }
+  }
+
+  .toc {
+    position: sticky;
+    top: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    font-family: var(--font-mono);
+    font-size: 0.76rem;
+  }
+  .toc a {
+    color: var(--text-dim);
+    text-decoration: none;
+    padding: 0.25rem 0.4rem;
+    border-radius: 5px;
+    border-left: 2px solid transparent;
+  }
+  .toc a:hover { color: var(--text); border-left-color: var(--cur); background: var(--surface-2); }
+
+  .slides { display: flex; flex-direction: column; gap: 1.4rem; }
+
+  .slide {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.1rem 1.25rem 1.3rem;
+    scroll-margin-top: 1rem;
+  }
+
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-dim);
+    margin-bottom: 0.55rem;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.6rem;
+  }
+  .eyebrow .clock {
+    text-transform: none;
+    letter-spacing: 0;
+    color: var(--cur);
+    font-weight: 700;
+  }
+
+  .trace {
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    background: var(--code-bg);
+    border-radius: 8px;
+    padding: 0.6rem 0.85rem;
+    margin: 0 0 0.7rem;
+    white-space: pre;
+    overflow-x: auto;
+  }
+  .trace .kw { color: var(--kw); font-weight: 600; }
+  .trace .arrow { color: var(--text-dim); }
+
+  .annotation {
+    border-left: 3px solid var(--cur);
+    background: var(--cur-bg);
+    border-radius: 0 8px 8px 0;
+    padding: 0.55rem 0.8rem;
+    font-size: 0.86rem;
+    margin-bottom: 0.85rem;
+  }
+
+  .state-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr auto;
+    gap: 0.8rem;
+    align-items: stretch;
+    margin-bottom: 0.85rem;
+  }
+  @media (max-width: 620px) {
+    .state-row { grid-template-columns: 1fr; }
+  }
+
+  .queue-label {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-dim);
+    margin-bottom: 0.3rem;
+  }
+
+  .tube {
+    border-radius: 999px;
+    border: 1.5px solid var(--border);
+    padding: 0.5rem 0.65rem;
+    min-height: 2.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    overflow-x: auto;
+  }
+  .tube.ready { border-color: var(--ready); }
+  .tube.sleep { border-color: var(--sleep); }
+
+  .chip {
+    font-family: var(--font-mono);
+    font-size: 0.76rem;
+    padding: 0.3rem 0.58rem;
+    border-radius: 999px;
+    white-space: nowrap;
+    flex: none;
+    line-height: 1.25;
+    overflow: hidden;
+  }
+  .chip.ready { background: var(--ready-bg); color: var(--ready); border: 1px solid var(--ready); }
+  .chip.sleep { background: var(--sleep-bg); color: var(--sleep); border: 1px solid var(--sleep); }
+  .chip .sub { display: block; font-size: 0.66rem; opacity: 0.85; }
+  .tube-empty { font-family: var(--font-mono); font-size: 0.76rem; color: var(--text-dim); }
+
+  .current-col { display: flex; flex-direction: column; align-items: center; min-width: 8.5rem; }
+  .send-label {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    color: var(--text-dim);
+    margin-bottom: 0.2rem;
+  }
+  .current-box {
+    border: 1.5px solid var(--cur);
+    border-radius: 8px;
+    padding: 0.5rem 0.9rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2.5rem;
+    font-family: var(--font-mono);
+    font-size: 0.84rem;
+    color: var(--cur);
+    background: var(--cur-bg);
+    flex: 1;
+  }
+  .current-box.empty { color: var(--text-dim); background: transparent; border-style: dashed; }
+  .current-box.ghost {
+    color: var(--text-dim);
+    background: transparent;
+    border-style: dashed;
+    border-color: var(--text-dim);
+    flex-direction: column;
+    gap: 0.05rem;
+    line-height: 1.2;
+  }
+  .current-box.ghost .label { text-decoration: line-through; text-decoration-color: var(--text-dim); }
+  .current-box.ghost .sub { font-size: 0.66rem; font-style: italic; opacity: 0.85; }
+
+  .console {
+    background: var(--console-bg);
+    color: var(--console-text);
+    border-radius: 8px;
+    padding: 0.6rem 0.85rem;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+  }
+  .console .line.latest { color: var(--console-accent); }
+  .console .line.ellipsis { opacity: 0.45; letter-spacing: 0.15em; }
+  .console-empty { opacity: 0.5; }
+
+  .caption { font-size: 0.88rem; color: var(--text-dim); margin: 0; }
+
+  .writeup {
+    margin-top: 2.6rem;
+    border-top: 1px solid var(--border);
+    padding-top: 1.6rem;
+  }
+  .writeup h2 { font-family: var(--font-display); font-size: 1.25rem; margin: 0 0 0.9rem; }
+  .writeup .finding { display: grid; grid-template-columns: 1.6rem 1fr; gap: 0.15rem 0.7rem; margin-bottom: 1.1rem; }
+  .writeup .finding .n { font-family: var(--font-mono); color: var(--cur); font-weight: 700; }
+  .writeup .finding h3 { grid-column: 2; font-size: 0.98rem; margin: 0 0 0.25rem; }
+  .writeup .finding p { grid-column: 2; margin: 0; color: var(--text-dim); font-size: 0.92rem; max-width: 68ch; }
+  .writeup .finding code { font-family: var(--font-mono); background: var(--surface-2); padding: 0.05em 0.35em; border-radius: 4px; color: var(--text); font-size: 0.9em; }
+
+  code.inline { font-family: var(--font-mono); background: var(--surface-2); padding: 0.05em 0.3em; border-radius: 4px; font-size: 0.92em; }
+
+  /* ---- ghost slot: a purely static mark for "this just left this queue" ----
+     Dashed outline + strikethrough + low opacity, sitting right where the
+     item used to sit, with a small label saying where it went. No motion,
+     no JS — just a different visual state for the same chip. */
+  .chip.ghost {
+    background: transparent;
+    border: 1.5px dashed var(--text-dim);
+    color: var(--text-dim);
+    opacity: 0.62;
+  }
+  .chip.ghost .label { text-decoration: line-through; text-decoration-color: var(--text-dim); }
+  .chip.ghost .sub { opacity: 0.9; text-decoration: none; font-style: italic; }
+</style>
+
+<h1>yieldo Execution Slides</h1>
+<p class="subtitle">
+  How <code class="inline">yieldo.py</code>'s <code class="inline">Scheduler.run()</code> alternates between waking
+  <code class="inline">countdown(5)</code> and <code class="inline">countup(20)</code>, laid out as a static page from
+  t=0 until both coroutines finish.
+</p>
+<div class="legend">
+  <span><span class="dot ready"></span>ready — coroutines waiting to run</span>
+  <span><span class="dot sleep"></span>sleeping — waiting until their deadline (heap)</span>
+  <span><span class="dot cur"></span>current — being driven right now via send(None)</span>
+  <span><span class="dot console"></span>console — accumulated print() output</span>
+</div>
+
+<div class="layout">
+  <nav class="toc">
+    <a href="#s1">1. Initial state</a>
+    <a href="#s3">2. new_task ×2</a>
+    <a href="#s4">3. Dispatch countdown · sleep(4)</a>
+    <a href="#s6">4. Dispatch countup · sleep(1)</a>
+    <a href="#s8">5. ready empty, blocking</a>
+    <a href="#s9">6. ready.append(coro)</a>
+    <a href="#s10">7. Dispatch countup · sleep(1)</a>
+    <a href="#s12">8. Both finish (t=20)</a>
+  </nav>
+
+  <div class="slides">
+
+    <section class="slide" id="s1">
+      <div class="eyebrow"><span>STEP 1</span><span class="clock">t = 0</span></div>
+      <p class="annotation" style="margin-bottom:0.85rem;">Right after Scheduler() is created. No coroutine has been registered yet.</p>
+      <div class="state-row">
+        <div>
+          <div class="queue-label">ready</div>
+          <div class="tube ready"><span class="tube-empty">empty</span></div>
+        </div>
+        <div>
+          <div class="queue-label">sleeping</div>
+          <div class="tube sleep"><span class="tube-empty">empty</span></div>
+        </div>
+        <div class="current-col">
+          <div class="queue-label">current</div>
+          <div class="current-box empty">empty</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" id="s3">
+      <div class="eyebrow"><span>STEP 2</span><span class="clock">t = 0</span></div>
+      <pre class="trace">sched.new_task(countdown(5))<br>sched.new_task(countup(20))</pre>
+      <div class="state-row">
+        <div>
+          <div class="queue-label">ready</div>
+          <div class="tube ready">
+            <span class="chip ready">countup(20)</span>
+            <span class="chip ready">countdown(5)</span>
+          </div>
+        </div>
+        <div>
+          <div class="queue-label">sleeping</div>
+          <div class="tube sleep"><span class="tube-empty">empty</span></div>
+        </div>
+        <div class="current-col">
+          <div class="queue-label">current</div>
+          <div class="current-box empty">empty</div>
+        </div>
+      </div>
+      <p class="caption">Both coroutines are now waiting in the ready queue</p>
+    </section>
+
+    <section class="slide" id="s4">
+      <div class="eyebrow"><span>STEP 3</span><span class="clock">t = 0</span></div>
+      <pre class="trace">sched.run()
+  <span class="kw">&gt;</span> while self.ready or self.sleeping
+    <span class="kw">&gt;</span> self.current = self.ready.popleft()
+    <span class="kw">&gt;</span> self.current.send(None)
+      <span class="kw">&gt;</span> await sched.sleep(4)
+        <span class="kw">&gt;</span> heapq.heappush(self.sleeping, (deadline, self.sequence, self.current))
+        <span class="kw">&gt;</span> self.current = None
+        <span class="kw">&gt;</span> await switch()
+  </pre>
+      <div class="annotation"><code class="inline">coroutine.send(None)</code> runs the coroutine object up to the point where it hands control back (<code class="inline">yield</code>).</div>
+      <div class="state-row">
+        <div>
+          <div class="queue-label">ready</div>
+          <div class="tube ready">
+            <span class="chip ready">countup(20)</span>
+            <span class="chip ready ghost"><span class="label">countdown(5)</span><span class="sub">→ sleeping</span></span>
+          </div>
+        </div>
+        <div>
+          <div class="queue-label">sleeping</div>
+          <div class="tube sleep">
+            <span class="chip sleep">countdown(5)<span class="sub">deadline 4 · seq 1</span></span>
+          </div>
+        </div>
+        <div class="current-col">
+          <div class="queue-label">current</div>
+          <div class="current-box ghost"><span class="label">countdown(5)</span><span class="sub">→ None</span></div>
+        </div>
+      </div>
+      <div class="console"><span class="line latest">Down 5</span></div>
+    </section>
+
+    <section class="slide" id="s6">
+      <div class="eyebrow"><span>STEP 4</span><span class="clock">t = 0</span></div>
+      <pre class="trace">sched.run()
+  <span class="kw">&gt;</span> while self.ready or self.sleeping
+    <span class="kw">&gt;</span> self.current = self.ready.popleft()
+    <span class="kw">&gt;</span> self.current.send(None)
+      <span class="kw">&gt;</span> await sched.sleep(1)
+        <span class="kw">&gt;</span> heapq.heappush(self.sleeping, (deadline, self.sequence, self.current))
+        <span class="kw">&gt;</span> self.current = None
+        <span class="kw">&gt;</span> await switch()
+  </pre>
+      <div class="state-row">
+        <div>
+          <div class="queue-label">ready</div>
+          <div class="tube ready">
+            <span class="chip ready ghost"><span class="label">countup(20)</span><span class="sub">→ sleeping</span></span>
+          </div>
+        </div>
+        <div>
+          <div class="queue-label">sleeping</div>
+          <div class="tube sleep">
+            <span class="chip sleep">countdown(5)<span class="sub">deadline 4 · seq 1</span></span>
+            <span class="chip sleep">countup(20)<span class="sub">deadline 1 · seq 2</span></span>
+          </div>
+        </div>
+        <div class="current-col">
+          <div class="queue-label">current</div>
+          <div class="current-box ghost"><span class="label">countup(20)</span><span class="sub">→ None</span></div>
+        </div>
+      </div>
+      <div class="console"><span class="line">Down 5</span><br><span class="line latest">Up 0</span></div>
+    </section>
+
+    <section class="slide" id="s8">
+      <div class="eyebrow"><span>STEP 5</span><span class="clock">t = 0</span></div>
+      <pre class="trace">sched.run()
+  <span class="kw">&gt;</span> while self.ready or self.sleeping
+    <span class="kw">&gt;</span> if not self.ready:
+        <span class="kw">&gt;</span> time.sleep(delta)</pre>
+      <div class="annotation">ready is empty, so we block until something finishes</div>
+      <div class="state-row">
+        <div>
+          <div class="queue-label">ready</div>
+          <div class="tube ready"><span class="tube-empty">empty</span></div>
+        </div>
+        <div>
+          <div class="queue-label">sleeping</div>
+          <div class="tube sleep">
+            <span class="chip sleep">countdown(5)<span class="sub">deadline 4 · seq 1</span></span>
+            <span class="chip sleep">countup(20)<span class="sub">deadline 1 · seq 2</span></span>
+          </div>
+        </div>
+        <div class="current-col">
+          <div class="queue-label">current</div>
+          <div class="current-box empty">empty</div>
+        </div>
+      </div>
+      <div class="console"><span class="line">Down 5</span><br><span class="line latest">Up 0</span></div>
+    </section>
+
+    <section class="slide" id="s9">
+      <div class="eyebrow"><span>STEP 6</span><span class="clock">t = 1</span></div>
+      <pre class="trace">sched.run()
+  <span class="kw">&gt;</span> while self.ready or self.sleeping
+    <span class="kw">&gt;</span> if not self.ready:
+        <span class="kw">&gt;</span> time.sleep(delta)
+      <span class="kw">&gt;</span> self.ready.append(coro)</pre>
+      <div class="annotation">Push the timer that just fired back into the ready queue</div>
+      <div class="state-row">
+        <div>
+          <div class="queue-label">ready</div>
+          <div class="tube ready"><span class="chip ready">countup(20)</span></div>
+        </div>
+        <div>
+          <div class="queue-label">sleeping</div>
+          <div class="tube sleep">
+            <span class="chip sleep">countdown(5)<span class="sub">deadline 4 · seq 1</span></span>
+            <span class="chip sleep ghost"><span class="label">countup(20)</span><span class="sub">→ ready</span></span>
+          </div>
+        </div>
+        <div class="current-col">
+          <div class="queue-label">current</div>
+          <div class="current-box empty">empty</div>
+        </div>
+      </div>
+      <div class="console"><span class="line">Down 5</span><br><span class="line">Up 0</span></div>
+      <p class="caption" style="margin-top:0.7rem;">At t=1, countup — the one with the earlier deadline — returns to the ready queue.</p>
+    </section>
+
+    <section class="slide" id="s10">
+      <div class="eyebrow"><span>STEP 7</span><span class="clock">t = 1</span></div>
+      <pre class="trace">sched.run()
+  <span class="kw">&gt;</span> while self.ready or self.sleeping
+    <span class="kw">&gt;</span> self.current = self.ready.popleft()
+    <span class="kw">&gt;</span> self.current.send(None)
+      <span class="kw">&gt;</span> await sched.sleep(1)
+        <span class="kw">&gt;</span> heapq.heappush(self.sleeping, (deadline, self.sequence, self.current))
+        <span class="kw">&gt;</span> self.current = None
+        <span class="kw">&gt;</span> await switch()
+  </pre>
+      <div class="state-row">
+        <div>
+          <div class="queue-label">ready</div>
+          <div class="tube ready">
+            <span class="chip ready ghost"><span class="label">countup(20)</span><span class="sub">→ sleeping</span></span>
+          </div>
+        </div>
+        <div>
+          <div class="queue-label">sleeping</div>
+          <div class="tube sleep">
+            <span class="chip sleep">countdown(5)<span class="sub">deadline 4 · seq 1</span></span>
+            <span class="chip sleep">countup(20)<span class="sub">deadline 2 · seq 3</span></span>
+          </div>
+        </div>
+        <div class="current-col">
+          <div class="queue-label">current</div>
+          <div class="current-box ghost"><span class="label">countup(20)</span><span class="sub">→ None</span></div>
+        </div>
+      </div>
+      <div class="console"><span class="line">Down 5</span><br><span class="line">Up 0</span><br><span class="line latest">Up 1</span></div>
+      <p class="caption" style="margin-top:0.7rem;">This pattern repeats, and the two coroutines keep alternating.</p>
+    </section>
+
+    <section class="slide" id="s12">
+      <div class="eyebrow"><span>STEP 8</span><span class="clock">t = 20</span></div>
+      <pre class="trace">sched.run()
+  <span class="kw">&gt;</span> while self.ready or self.sleeping
+    <span class="kw">&gt;</span> if not self.ready:
+        <span class="kw">&gt;</span> deadline, _, coro = heapq.heappop(self.sleeping)
+        <span class="kw">&gt;</span> self.ready.append(coro)
+    <span class="kw">&gt;</span> self.current = self.ready.popleft()
+    <span class="kw">&gt;</span> try:
+        <span class="kw">&gt;</span> self.current.send(None)
+      <span class="kw">&gt;</span> except StopIteration:
+        <span class="kw">&gt;</span> pass
+  </pre>
+      <div class="annotation">countdown's n reaches 0, the while loop ends, the coroutine returns, and <code class="inline">StopIteration</code> is raised.</div>
+      <div class="state-row">
+        <div>
+          <div class="queue-label">ready</div>
+          <div class="tube ready">
+            <span class="chip ready ghost"><span class="label">countup(20)</span><span class="sub">→ finished</span></span>
+          </div>
+        </div>
+        <div>
+          <div class="queue-label">sleeping</div>
+          <div class="tube sleep"><span class="tube-empty">empty</span></div>
+        </div>
+        <div class="current-col">
+          <div class="queue-label">current</div>
+          <div class="current-box ghost"><span class="label">countup(20)</span><span class="sub">→ None</span></div>
+        </div>
+      </div>
+      <div class="console"><span class="line ellipsis">…</span><br><span class="line">Down 1</span><br><span class="line">Up 16</span><br><span class="line">Up 17</span><br><span class="line">Up 18</span><br><span class="line latest">Up 19</span></div>
+    </section>
+  </div>
+</div>
+
+<div class="writeup">
+  <h2>Things worth noting while building this page</h2>
+
+  <div class="finding">
+    <div class="n">1</div>
+    <h3>The sleeping heap stores an absolute <code>deadline</code>, not "time remaining"</h3>
+    <p>
+      The original slides wrote entries like <code>(4sec, 1, countdown(5))</code> as "seconds remaining", but the
+      actual code (<code>sleep()</code>, L27) stores an <b>absolute timestamp</b> computed as
+      <code>time.time() + delay</code>. So this page keeps the raw <code>deadline</code> value on each chip and shows
+      the current <code>t</code> (clock) separately in the top-right of each slide instead — "time remaining" is
+      something the reader computes as <code>deadline − t</code>. In STEP 6, countdown's deadline stays at 4 while
+      t moves from 0→1 — that's exactly where this distinction shows up.
+    </p>
+  </div>
+
+  <div class="finding">
+    <div class="n">2</div>
+    <h3>Even when ready is empty, only one expired timer wakes up at a time</h3>
+    <p>
+      L38-43 pulls out exactly one item with <code>heapq.heappop</code> and pushes it onto <code>ready</code>. That's
+      why in STEP 5→6, even though sleeping held two entries, only countup — the one with the earlier deadline — got
+      popped. Later, when both coroutines' deadlines land on the same value (t=4), they get handled across two
+      separate iterations for the same reason: on the second pop, the clock has already reached that deadline, so
+      <code>delta ≤ 0</code>, and thanks to the <code>if delta &gt; 0</code> guard on L41, the unnecessary
+      <code>time.sleep(0)</code> is skipped. (<code>io_scheduler.py</code>'s <code>run()</code> differs here — its
+      <code>while self.sleeping: ...</code> drains every expired entry in one go.)
+    </p>
+  </div>
+
+  <div class="finding">
+    <div class="n">3</div>
+    <h3>When deadlines tie, <code>sequence</code> decides the order</h3>
+    <p>
+      This is where the heap's 3-tuple <code>(deadline, sequence, coro)</code> earns its keep. Coroutine objects
+      can't be compared with <code>&lt;</code>, so when deadlines match, whichever one called <code>sleep()</code>
+      first — and thus got the smaller <code>sequence</code> — always wakes first. That's why, at every point where
+      the two coroutines' deadlines coincide, "Down N" is always printed before "Up N".
+    </p>
+  </div>
+
+  <div class="finding">
+    <div class="n">4</div>
+    <h3>L49's <code>if self.current:</code> never actually fires in this example</h3>
+    <p>
+      Because <code>sleep()</code> always "erases" <code>self.current</code> by setting it to <code>None</code>
+      before <code>await switch()</code> (L30), this condition is always false once <code>send(None)</code> returns.
+      This branch exists to cover a coroutine that calls <code>await switch()</code> directly, without going through
+      <code>sched.sleep()</code>, just to "yield its turn" — the countdown/countup example never takes that path, so
+      the branch reads like dead code. Noting that it's there as a defensive guard for the scheduler's general
+      design should keep readers from getting confused by it.
+    </p>
+  </div>
+</div>

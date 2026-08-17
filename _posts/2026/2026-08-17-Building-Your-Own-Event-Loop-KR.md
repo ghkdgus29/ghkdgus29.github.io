@@ -135,15 +135,16 @@ Scheduler는 크게 두 개의 큐를 가진다. 지금 바로 실행 가능한 
 
 아래는 내부 동작을 그림으로 표현하였다.
 
-![alt text](image.png)
-![alt text](image-1.png)
-![alt text](image-2.png)
-![alt text](image-3.png)
-![alt text](image-4.png)
-![alt text](image-5.png)
-![alt text](image-6.png)
-![alt text](image-7.png)
+![yield 기반 스케줄러 실행 STEP 1/8](/assets/images/posts/260817.png)
+![yield 기반 스케줄러 실행 STEP 2/8](/assets/images/posts/260817-2.png)
+![yield 기반 스케줄러 실행 STEP 3/8](/assets/images/posts/260817-3.png)
+![yield 기반 스케줄러 실행 STEP 4/8](/assets/images/posts/260817-4.png)
+![yield 기반 스케줄러 실행 STEP 5/8](/assets/images/posts/260817-5.png)
+![yield 기반 스케줄러 실행 STEP 6/8](/assets/images/posts/260817-6.png)
+![yield 기반 스케줄러 실행 STEP 7/8](/assets/images/posts/260817-7.png)
+![yield 기반 스케줄러 실행 STEP 8/8](/assets/images/posts/260817-8.png)
 
+<br>
 
 ## i/o를 처리하는 이벤트루프
 ```python
@@ -308,23 +309,24 @@ I/O 작업을 처리하는 이벤트 루프를 구현하기 위해선 먼저 Sch
 
 아래는 내부 동작을 그림으로 표현하였다.
 
-![alt text](image-8.png)
-![alt text](image-9.png)
-![alt text](image-10.png)
-![alt text](image-11.png)
-![alt text](image-12.png)
-![alt text](image-13.png)
-![alt text](image-14.png)
-![alt text](image-15.png)
-![alt text](image-16.png)
-![alt text](image-17.png)
-![alt text](image-18.png)
-![alt text](image-19.png)
-![alt text](image-20.png)
-![alt text](image-21.png)
-![alt text](image-22.png)
-![alt text](image-23.png)
+![I/O 이벤트 루프 실행 STEP 1/16](/assets/images/posts/260817-9.png)
+![I/O 이벤트 루프 실행 STEP 2/16](/assets/images/posts/260817-10.png)
+![I/O 이벤트 루프 실행 STEP 3/16](/assets/images/posts/260817-11.png)
+![I/O 이벤트 루프 실행 STEP 4/16](/assets/images/posts/260817-12.png)
+![I/O 이벤트 루프 실행 STEP 5/16](/assets/images/posts/260817-13.png)
+![I/O 이벤트 루프 실행 STEP 6/16](/assets/images/posts/260817-14.png)
+![I/O 이벤트 루프 실행 STEP 7/16](/assets/images/posts/260817-15.png)
+![I/O 이벤트 루프 실행 STEP 8/16](/assets/images/posts/260817-16.png)
+![I/O 이벤트 루프 실행 STEP 9/16](/assets/images/posts/260817-17.png)
+![I/O 이벤트 루프 실행 STEP 10/16](/assets/images/posts/260817-18.png)
+![I/O 이벤트 루프 실행 STEP 11/16](/assets/images/posts/260817-19.png)
+![I/O 이벤트 루프 실행 STEP 12/16](/assets/images/posts/260817-20.png)
+![I/O 이벤트 루프 실행 STEP 13/16](/assets/images/posts/260817-21.png)
+![I/O 이벤트 루프 실행 STEP 14/16](/assets/images/posts/260817-22.png)
+![I/O 이벤트 루프 실행 STEP 15/16](/assets/images/posts/260817-23.png)
+![I/O 이벤트 루프 실행 STEP 16/16](/assets/images/posts/260817-24.png)
 
+<br>
 
 ## cancel을 처리하는 이벤트루프
 ```python
@@ -574,14 +576,14 @@ if __name__ == "__main__":
 
 아래는 내부 동작을 그림으로 표현하였다.
 
-![alt text](image-24.png)
-![alt text](image-25.png)
-![alt text](image-26.png)
-![alt text](image-27.png)
-![alt text](image-28.png)
-![alt text](image-29.png)
-![alt text](image-30.png)
-![alt text](image-31.png)
+![cancel 처리 실행 STEP 1/8](/assets/images/posts/260817-25.png)
+![cancel 처리 실행 STEP 2/8](/assets/images/posts/260817-26.png)
+![cancel 처리 실행 STEP 3/8](/assets/images/posts/260817-27.png)
+![cancel 처리 실행 STEP 4/8](/assets/images/posts/260817-28.png)
+![cancel 처리 실행 STEP 5/8](/assets/images/posts/260817-29.png)
+![cancel 처리 실행 STEP 6/8](/assets/images/posts/260817-30.png)
+![cancel 처리 실행 STEP 7/8](/assets/images/posts/260817-31.png)
+![cancel 처리 실행 STEP 8/8](/assets/images/posts/260817-32.png)
 
 <br>
 
@@ -593,10 +595,14 @@ Task는 이 코루틴을 스케줄러가 관리할 수 있는 형태로 감싼 w
 
 `asyncio`에서도 마찬가지다. `asyncio.create_task()`는 코루틴을 `asyncio.Task`로 감싸 이벤트 루프의 스케줄링 대상으로 등록하는 함수다. 코루틴 객체 자체는 제너레이터와 같은 방식으로 동작하는 객체일 뿐이다. `send()`나 `throw()`를 호출하면 멈춰있던 지점부터 다시 실행되긴 하지만, 지금 ready 큐에 들어있는지, 어떤 Future를 기다리고 있는지, 취소 요청이 들어왔는지 같은 스케줄링 상태는 전혀 갖고 있지 않다. 그래서 코루틴 객체 혼자서는 이벤트 루프에 등록될 수도, 스스로 다시 깨어날 수도 없다. 매번 Task가 `send(None)`이나 `throw(exc)`를 호출해줘야 한 스텝씩 진행된다. 즉, Task가 되어야 비로소 이벤트 루프 안에서 독립적으로 실행되고 취소도 가능해진다.
 
+<br>
+
 ## Future
 Future는 "미래에 완료될 연산 작업의 결과를 담아두는 컨테이너"이다. 위에서 구현한 `Future` 클래스는 값이 채워졌는지(`_done`), 취소됐는지(`_cancelled`), 값이 채워지면 무엇을 실행할지(`_callbacks`)를 들고 있을 뿐 그 자체로는 아무 계산도 하지 않는다. 실제 결과를 채워 넣는 주체는 항상 외부에 있다. `sleep()`에서는 타이머가 만료됐을 때, `recv()`에서는 소켓이 읽기 가능해졌을 때 각각 `set_result()`를 호출해 값을 채워 넣는다.
 
 Task가 코루틴이 `yield`한 Future를 받아 `add_done_callback(self._wakeup)`으로 자기 자신을 등록해두는 것이 바로 "결과가 준비되면 나를 깨워달라"는 예약이다. Future는 Task와, 그 Future를 채우는 콜백 사이를 이어주는 연결 고리인 셈이다. Task 입장에서는 그게 sleep이든 소켓 읽기든 신경 쓸 필요 없이 "Future 하나가 완료될 때까지 기다린다"는 동일한 인터페이스로 다룰 수 있다는 게 핵심이다.
+
+<br>
 
 ## CPU bound 작업이 이벤트 루프를 왜 블록하는지 설명
 지금까지 만든 이벤트 루프는 결국 하나의 스레드에서 도는 `while` 루프 하나다. `run()`이 ready 큐에서 콜백을 하나씩 꺼내 순서대로 호출하는 구조이기 때문에, 어떤 콜백(또는 Task)이 실행되는 동안에는 다른 Task가 절대 끼어들 수 없다.
