@@ -129,9 +129,9 @@ sched.run()
 The Scheduler is built around two queues: a ready queue holding coroutines that can run right now, and a sleeping heap holding coroutines that aren't due to wake up yet, stored as (wake time, sequence, coroutine) tuples.
 
 
-`run()` is a loop that keeps cycling through these two queues. When the ready queue is empty, it pops the coroutine with the nearest deadline off the sleeping heap, blocks with `time.sleep()` until that time arrives, then moves it into the ready queue. It then pops a coroutine off the ready queue and resumes it with `send(None)`. The coroutine runs until its next await point (`switch` or `sleep`) and hands control back; once it runs to completion, a `StopIteration` is raised and it naturally falls out of the loop.
+`run()` is a loop that keeps cycling through these two queues. When the ready queue is empty, it pops the coroutine with the nearest deadline off the sleeping heap, blocks with `time.sleep()` until that time arrives, then moves it into the ready queue. It then pops a coroutine off the ready queue and resumes it with `send(None)`. The coroutine runs until its next await point and hands control back. Once it runs to completion, it raises `StopIteration`.
 
-Because `countdown` and `countup` yield control every time they call `await sched.sleep()`, only one coroutine is ever actually running at any given moment — yet the two functions interleave in a way that makes the countdown and the count-up look like they're progressing at the same time. That's exactly why this looks like concurrency without ever spawning a thread: instead of the OS preemptively switching execution, each coroutine cooperatively hands back control at its own await points.
+Because `countdown` and `countup` yield control every time they call `await sched.sleep()`, only one coroutine is ever actually running at any given moment — yet the two functions interleave in a way that makes the countdown and the count-up look like they're progressing at the same time. That's exactly why the two look like they're running at once even though not a single thread was ever spawned: instead of the OS preemptively switching execution, each coroutine cooperatively hands back control at its own await points, and that's what produces this interleaving.
 
 Here's a step-by-step trace of what's happening internally.
 
@@ -305,7 +305,7 @@ When the ready queue is empty, `run()` calls `select()`, which blocks until eith
 
 Once the coroutine wakes back up, it performs the actual socket call — `sock.recv()` or `sock.accept()`. Since `select()` has already confirmed the fd is ready, this call won't block.
 
-`Task`, meanwhile, wraps a coroutine into a single "callable scheduling unit." The `run()` loop doesn't need to care whether what it pulled off the ready queue is a coroutine or not — it just calls it, `func()`. Internally, `Task.__call__` calls `coro.send(None)` to run the coroutine up to its next `switch()` point; if the coroutine simply yielded control without blocking on sleep or I/O (meaning `sched.current` still points to itself), it's immediately re-added to the ready queue to continue on the next turn. Once the coroutine finishes, `StopIteration` is raised and the Task quietly disappears without any extra handling.
+`Task`, meanwhile, wraps a coroutine into a single "callable scheduling unit." The `run()` loop doesn't need to care whether what it pulled off the ready queue is a coroutine or not — it just calls it, `func()`. Internally, `Task.__call__` calls `coro.send(None)` to run the coroutine up to whatever point it hands control back; if the coroutine simply yielded control without blocking on sleep or I/O (meaning `sched.current` still points to itself), it's immediately re-added to the ready queue to continue on the next turn. Once the coroutine finishes, `StopIteration` is raised and the Task quietly disappears without any extra handling.
 
 Here's a step-by-step trace of what's happening internally.
 
@@ -570,7 +570,7 @@ To handle this, we introduce a `Future` object. A Future is a container holding 
 
 In this design, Task and Future have a delegation relationship rather than an inheritance one. Methods like `sleep()`, `recv()`, `send()`, and `accept()` no longer do a bare `yield` — each one now creates a fresh Future, wires the actual resume logic (`fut.set_result(None)`) to its completion callback, and hands off control with `await fut`. `Task.__call__` checks whether the result of `coro.send()`/`coro.throw()` is a Future instance; if it is, it stores that Future in `self._fut_waiter` and registers `self._wakeup` as its completion callback. In other words, a Task always holds a reference to exactly one Future: whichever one it's currently waiting on.
 
-That structure is what makes `Task.cancel()` so simple. If the task is already waiting on a Future (`self._fut_waiter is not None`), all it has to do is call `cancel()` on that Future. Once the Future is cancelled, its registered `_wakeup` callback runs; seeing `future.cancelled()` return true, `_wakeup` calls `self(exc=CancelledError())`, throwing a `CancelledError` right at the await point where the coroutine was paused. If the task hasn't started waiting on anything yet (`_fut_waiter` is `None`), it just sets the `_must_cancel` flag, so that the next time the Task runs, a `CancelledError` gets thrown immediately.
+That structure is what makes `Task.cancel()` so simple. If the task is already waiting on a Future (`self._fut_waiter is not None`), all it has to do is call `cancel()` on that Future. Once the Future is cancelled, its registered `_wakeup` callback runs; seeing `future.cancelled()` return true, `_wakeup` calls `self(exc=CancelledError())`, throwing a `CancelledError` right at the await point where the coroutine was paused. If the Task has never run yet and so has no Future attached (`_fut_waiter` is `None`), it just sets the `_must_cancel` flag, so that the next time the Task runs, a `CancelledError` gets thrown immediately right there.
 
 In the example, while `stalled_read` waits forever for data that will never arrive via `sched.recv()`, `timeout_after` calls `task.cancel()` after two seconds. That cancellation propagates down into the Future created inside `recv()`, raising a `CancelledError` right at `stalled_read`'s `await sched.recv(...)` line, where it's caught by `except CancelledError` and the task exits cleanly.
 
@@ -594,6 +594,19 @@ A coroutine is the object created when you call a function defined with `async d
 A Task is a wrapper that packages that coroutine into a form the scheduler can manage. It holds the coroutine, and every time it's invoked (`__call__`), it advances the coroutine one step with `coro.send()`/`coro.throw()`, checks what it's waiting on (a Future), and reschedules accordingly. The coroutine itself only knows *what* to do — it has no idea when it'll run again, or what happens if it gets cancelled. All of that scheduling state — the Future it's waiting on, whether it's been cancelled, whether it's done — is the Task's responsibility.
 
 The same is true in `asyncio`. `asyncio.create_task()` wraps a coroutine in an `asyncio.Task` and registers it as something the event loop can schedule. A coroutine object by itself is just an object that behaves like a generator. Calling `send()` or `throw()` resumes it from wherever it paused, but it carries none of the scheduling state — whether it's in the ready queue, which Future it's waiting on, whether a cancellation has been requested. That's why a coroutine object can never register itself with an event loop or wake itself back up — every single step, something else (a Task) has to call `send(None)` or `throw(exc)` on it. Only once it becomes a Task can it run independently inside the event loop and be cancelled.
+
+<br>
+
+## send() and await
+`send()` is the action that forces a coroutine to run one step from the outside, up until it hands control back. `await`, on the other hand, is the syntax written *inside* a coroutine that declares "I might pause right here."
+
+`await expr` is equivalent to `yield from expr.__await__()`. `yield from` connects the inner generator and the outer coroutine like a tunnel: when the inner one hits a `yield`, that handoff of control travels straight through the tunnel and out the other end. Since every layer of `await` keeps extending this same tunnel, no matter how deeply nested the calls are, it eventually reaches all the way out to the `coro.send(None)` call inside `Task.__call__`.
+
+```python
+class Awaitable:
+    def __await__(self):
+        yield  # this is where it actually pauses
+```
 
 <br>
 

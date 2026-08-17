@@ -129,9 +129,9 @@ sched.run()
 Scheduler는 크게 두 개의 큐를 가진다. 지금 바로 실행 가능한 코루틴을 담아두는 ready 큐와, 아직 깨어날 시간이 되지 않은 코루틴을 (깨어날 시각, 시퀸스, 코루틴) 튜플로 저장해두는 sleeping 힙이다.
 
 
-`run()`은 이 두 큐를 계속 순회하는 루프다. ready 큐가 비어 있으면 sleeping 힙에서 가장 먼저 깨어나야 할 코루틴을 꺼내 그 시각까지 `time.sleep()`으로 기다린 뒤 ready 큐로 옮긴다. 그다음 ready 큐에서 코루틴을 하나 꺼내 `send(None)`으로 실행을 재개시킨다. 코루틴은 다음 await 지점(`switch` 또는 `sleep`)까지 실행되다 다시 제어권을 돌려주고, 끝까지 실행되면 `StopIteration`이 발생해 루프에서 자연스럽게 빠진다.
+`run()`은 이 두 큐를 계속 순회하는 루프다. ready 큐가 비어 있으면 sleeping 힙에서 가장 먼저 깨어나야 할 코루틴을 꺼내 그 시각까지 `time.sleep()`으로 기다린 뒤 ready 큐로 옮긴다. 그다음 ready 큐에서 코루틴을 하나 꺼내 `send(None)`으로 실행을 재개시킨다. 코루틴은 다음 await 지점까지 실행되다 다시 제어권을 돌려준다. 끝까지 실행되면 `StopIteration`을 발생시킨다.
 
-`countdown`과 `countup`은 `await sched.sleep()`을 호출할 때마다 실행을 양보하기 때문에, 실제로는 한 순간에 하나의 코루틴만 실행되고 있음에도 두 함수가 번갈아 실행되면서 마치 카운트다운과 카운트업이 동시에 진행되는 것처럼 보인다. 스레드를 하나도 만들지 않았는데 동시성처럼 보이는 이유가 바로 이것이다. OS가 강제로 실행을 전환하는 preemptive 방식이 아니라, 코루틴 스스로가 await 지점에서 제어권을 넘겨주는 cooperative 방식으로 동시성을 흉내 낸 것이다.
+`countdown`과 `countup`은 `await sched.sleep()`을 호출할 때마다 실행을 양보하기 때문에, 실제로는 한 순간에 하나의 코루틴만 실행되고 있음에도 두 함수가 번갈아 실행되면서 마치 카운트다운과 카운트업이 동시에 진행되는 것처럼 보인다. 스레드를 하나도 만들지 않았는데도 두 작업이 동시에 도는 것처럼 보이는 이유가 바로 이것이다. OS가 강제로 실행을 전환하는 preemptive 방식이 아니라, 코루틴 스스로가 await 지점에서 제어권을 넘겨주는 cooperative 방식으로 이런 흐름을 만들어낸 것이다.
 
 아래는 내부 동작을 그림으로 표현하였다.
 
@@ -146,7 +146,7 @@ Scheduler는 크게 두 개의 큐를 가진다. 지금 바로 실행 가능한 
 
 <br>
 
-## i/o를 처리하는 이벤트루프
+## I/O를 처리하는 이벤트루프
 ```python
 import heapq
 import time
@@ -305,7 +305,7 @@ I/O 작업을 처리하는 이벤트 루프를 구현하기 위해선 먼저 Sch
 
 이렇게 다시 깨어난 코루틴이 재개되면, `sock.recv()`나 `sock.accept()` 같은 실제 소켓 호출을 수행한다. `select()`가 이미 해당 fd가 준비됐음을 확인해줬기 때문에 이 호출은 블로킹되지 않는다.
 
-한편 `Task`는 코루틴을 감싸서 "호출 가능한 하나의 스케줄링 단위"로 만드는 역할을 한다. `run()` 루프는 ready 큐에서 꺼낸 대상이 코루틴인지 아닌지 신경 쓸 필요 없이 그냥 `func()`처럼 호출하기만 하면 된다. `Task.__call__`은 내부적으로 `coro.send(None)`을 호출해 코루틴을 다음 `switch()` 지점까지 실행시키고, 코루틴이 sleep이나 I/O 대기 없이 그냥 제어권만 양보했다면(즉 `sched.current`가 여전히 자기 자신을 가리키고 있다면) 곧바로 ready 큐에 다시 등록해 다음 턴에 이어 실행되게 한다. 코루틴이 끝까지 실행되면 `StopIteration`이 발생하고, Task는 별다른 처리 없이 조용히 사라진다.
+한편 `Task`는 코루틴을 감싸서 "호출 가능한 하나의 스케줄링 단위"로 만드는 역할을 한다. `run()` 루프는 ready 큐에서 꺼낸 대상이 코루틴인지 아닌지 신경 쓸 필요 없이 그냥 `func()`처럼 호출하기만 하면 된다. `Task.__call__`은 내부적으로 `coro.send(None)`을 호출해 코루틴이 제어권을 넘기는 지점까지 실행시키고, 코루틴이 sleep이나 I/O 대기 없이 그냥 제어권만 양보했다면(즉 `sched.current`가 여전히 자기 자신을 가리키고 있다면) 곧바로 ready 큐에 다시 등록해 다음 턴에 이어 실행되게 한다. 코루틴이 끝까지 실행되면 `StopIteration`이 발생하고, Task는 별다른 처리 없이 조용히 사라진다.
 
 아래는 내부 동작을 그림으로 표현하였다.
 
@@ -570,7 +570,7 @@ if __name__ == "__main__":
 
 이 구조에서 Task와 Future는 위임 관계이다. `sleep()`, `recv()`, `send()`, `accept()` 같은 메서드들은 이제 bare `yield` 대신 매번 새로운 Future를 만들고, 그 완료 콜백에 실제 재개 로직(`fut.set_result(None)`)을 연결해둔 뒤 `await fut`으로 제어권을 넘긴다. `Task.__call__`은 `coro.send()`/`coro.throw()`의 결과가 Future 인스턴스이면 그 Future를 `self._fut_waiter`에 저장해두고 `self._wakeup`을 완료 콜백으로 등록한다. 즉 Task는 항상 "지금 내가 기다리고 있는 단 하나의 Future"에 대한 참조를 갖는다.
 
-`Task.cancel()`이 하는 일은 이 구조 덕분에 단순해진다. 이미 어떤 Future를 기다리고 있는 상태라면(`self._fut_waiter is not None`) 그 Future의 `cancel()`을 그대로 호출하면 된다. Future가 취소되면 등록해둔 `_wakeup` 콜백이 실행되고, `_wakeup`은 `future.cancelled()`가 참임을 보고 `self(exc=CancelledError())`를 호출해 코루틴이 멈춰 있던 바로 그 await 지점에 `CancelledError`를 `throw()`한다. 아직 아무 Future도 기다리기 전이라면(`_fut_waiter`가 `None`) `_must_cancel` 플래그만 세워두고, Task가 다음번에 실행될 때 그 자리에서 바로 `CancelledError`가 던져지도록 한다.
+`Task.cancel()`이 하는 일은 이 구조 덕분에 단순해진다. 이미 어떤 Future를 기다리고 있는 상태라면(`self._fut_waiter is not None`) 그 Future의 `cancel()`을 그대로 호출하면 된다. Future가 취소되면 등록해둔 `_wakeup` 콜백이 실행되고, `_wakeup`은 `future.cancelled()`가 참임을 보고 `self(exc=CancelledError())`를 호출해 코루틴이 멈춰 있던 바로 그 await 지점에 `CancelledError`를 `throw()`한다. 아직 Task가 실행된 적 없어, 연결된 Future도 없다면(`_fut_waiter`가 `None`) `_must_cancel` 플래그만 세워두고, Task가 다음번에 실행될 때 그 자리에서 바로 `CancelledError`가 던져지도록 한다.
 
 예제에서는 `stalled_read`가 `sched.recv()`로 영원히 오지 않을 데이터를 기다리는 동안 `timeout_after`가 2초 뒤 `task.cancel()`을 호출한다. 이 취소는 `recv()` 내부에서 만든 Future까지 전파되어 `stalled_read`의 `await sched.recv(...)` 지점에서 `CancelledError`가 발생하고, `except CancelledError`로 잡혀 깔끔하게 종료된다.
 
@@ -594,6 +594,19 @@ if __name__ == "__main__":
 Task는 이 코루틴을 스케줄러가 관리할 수 있는 형태로 감싼 wrapper다. 코루틴을 들고 있다가 자신이 호출될 때마다(`__call__`) `coro.send()`/`coro.throw()`로 한 스텝 진행시키고, 코루틴이 무엇을 기다리는지(Future)를 확인해 다시 스케줄링한다. 코루틴 자체는 "무엇을 할지"만 알고 있을 뿐, 언제 다시 실행될지 취소되면 어떻게 되는지는 전혀 모른다. 대기 중인 Future나 취소 여부, 완료 여부 같은 스케줄링 상태를 관리하는 책임은 전부 Task 쪽에 있다.
 
 `asyncio`에서도 마찬가지다. `asyncio.create_task()`는 코루틴을 `asyncio.Task`로 감싸 이벤트 루프의 스케줄링 대상으로 등록하는 함수다. 코루틴 객체 자체는 제너레이터와 같은 방식으로 동작하는 객체일 뿐이다. `send()`나 `throw()`를 호출하면 멈춰있던 지점부터 다시 실행되긴 하지만, 지금 ready 큐에 들어있는지, 어떤 Future를 기다리고 있는지, 취소 요청이 들어왔는지 같은 스케줄링 상태는 전혀 갖고 있지 않다. 그래서 코루틴 객체 혼자서는 이벤트 루프에 등록될 수도, 스스로 다시 깨어날 수도 없다. 매번 Task가 `send(None)`이나 `throw(exc)`를 호출해줘야 한 스텝씩 진행된다. 즉, Task가 되어야 비로소 이벤트 루프 안에서 독립적으로 실행되고 취소도 가능해진다.
+
+<br>
+
+## send()와 await
+`send()`는 코루틴이 제어권을 반환할 때까지 바깥에서 한 스텝 실행하도록 강제하는 동작이고, `await`은 코루틴 안에서 "여기서 멈추겠다"를 선언하는 문법이다.
+
+`await expr`은 `yield from expr.__await__()`와 같다. `yield from`은 안쪽 제너레이터와 바깥 코루틴을 하나의 터널처럼 연결시켜, 안쪽에서 `yield`가 실행되면 그 제어권 반환이 터널을 타고 그대로 바깥까지 전달된다. `await`이 여러 겹 중첩돼 있어도 이 터널이 계속 이어지기 때문에, 결국 `Task.__call__`의 `coro.send(None)` 호출까지 전달된다.
+
+```python
+class Awaitable:
+    def __await__(self):
+        yield  # 실제로 멈추는 지점
+```
 
 <br>
 
