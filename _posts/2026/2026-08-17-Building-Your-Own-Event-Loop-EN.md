@@ -1,7 +1,7 @@
 ---
 layout: post
 author: Hyun 
-title: Building Your Own Event Loop
+title: Mini Event Loop Scratch
 date:   2026-08-17 00:00:00 +0900
 excerpt: "How Python's async/await and event loops work under the hood, built from scratch"
 categories:
