@@ -36,6 +36,8 @@ Retrieved chunks:
 - Chunk 1 (1st, irrelevant): "Employees get 15 days of annual leave per year."
 - Chunk 2 (2nd, relevant): "You must attach a receipt if travel expenses exceed $100."
 
+<br>
+
 Calculation:
 ```
 k=1, precision@1 = 0/1 = 0, relevance_1 = 0
@@ -193,6 +195,8 @@ Retrieved chunks:
 - Chunk 1 (1st, irrelevant): "Employees get 15 days of annual leave per year."
 - Chunk 2 (2nd, relevant): "You must attach a receipt if travel expenses exceed $100."
 
+<br>
+
 Calculation:
 ```
 Precision@2 = 1 / (1 + 1) = 0.5
@@ -253,6 +257,8 @@ reference: "You must attach a receipt if travel expenses exceed $100. Lodging al
 Retrieved chunks:
 - Chunk 1: "You must attach a receipt if travel expenses exceed $100."
 - Chunk 2: "Meeting rooms are booked through the calendar."
+
+<br>
 
 Calculation:
 ```
@@ -454,6 +460,8 @@ Retrieved chunk: "You must attach a receipt if travel expenses exceed $100."
 response: "You must attach a receipt if travel expenses exceed $100. Lodging also always requires a receipt."
 - A: attach a receipt when travel expenses exceed $100
 - B: lodging also always requires a receipt
+
+<br>
 
 Calculation:
 ```
@@ -1127,6 +1135,8 @@ Retrieved chunks:
 response: "You must attach a receipt if travel expenses exceed $100. Employees get 15 days of annual leave per year."
 - A: attach a receipt when travel expenses exceed $100 — matches the correct answer
 - B: employees get 15 days of annual leave per year — unrelated to the question, but matches chunk 2 exactly
+
+<br>
 
 Calculation:
 ```

@@ -364,6 +364,41 @@ blockquote p {
   display: inline;
 }
 
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5em 0;
+  font-size: 0.95em;
+  overflow-x: auto;
+  display: block;
+}
+
+table thead,
+table tbody {
+  display: table;
+  width: 100%;
+  table-layout: fixed;
+}
+
+table th,
+table td {
+  border: 1px solid #ddd;
+  padding: 0.6rem 0.9rem;
+  text-align: left;
+  vertical-align: top;
+  word-break: break-word;
+}
+
+table th {
+  background: var(--color-primary);
+  color: #fff;
+  font-weight: 700;
+}
+
+table tbody tr:nth-child(even) {
+  background: #f9f9f9;
+}
+
 .highlight pre {
   border: 1px solid var(--color-text);
   border-radius: 0.625rem;
