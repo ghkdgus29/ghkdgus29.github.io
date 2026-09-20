@@ -1099,6 +1099,7 @@ class FactualCorrectness(BaseMetric):
 > `reference_response = await self._decompose_and_verify_claims(response, reference)` <br>
 > - splits the response into claims and verifies whether each is present in the reference <br>
 > - computes TP, FP <br>
+
 > `response_reference = await self._decompose_and_verify_claims(reference, response)` <br>
 > - splits the reference into claims and verifies whether each is present in the response <br>
 > - computes FN
