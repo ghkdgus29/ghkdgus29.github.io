@@ -254,6 +254,8 @@ reference: "You must attach a receipt if travel expenses exceed $100. Lodging al
 - R1: attach a receipt when travel expenses exceed $100
 - R2: lodging always requires a receipt
 
+<br>
+
 Retrieved chunks:
 - Chunk 1: "You must attach a receipt if travel expenses exceed $100."
 - Chunk 2: "Meeting rooms are booked through the calendar."
@@ -1131,6 +1133,8 @@ reference: "You must attach a receipt if travel expenses exceed $100."
 Retrieved chunks:
 - Chunk 1 (relevant, supports the reference): "You must attach a receipt if travel expenses exceed $100."
 - Chunk 2 (irrelevant, unrelated to the reference): "Employees get 15 days of annual leave per year."
+
+<br>
 
 response: "You must attach a receipt if travel expenses exceed $100. Employees get 15 days of annual leave per year."
 - A: attach a receipt when travel expenses exceed $100 — matches the correct answer
