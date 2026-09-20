@@ -1193,7 +1193,7 @@ class NoiseSensitivity(BaseMetric):
         # Call super() for validation (without passing llm in kwargs)
         super().__init__(name=name, **kwargs)
 ```
-> 생성자 — 프롬프트 2개는 Faithfulness와 이름은 다르지만 `statement_generator_prompt()`/`nli_statement_prompt()` 함수를 그대로 호출해서 만든 **Faithfulness와 동일한 프롬프트 문자열**.
+> 생성자 — 두 프롬프트는 Faithfulness와는 별개의 클래스지만(`noise_sensitivity` 모듈에 따로 정의됨), 내부적으로 동일한 instruction과 예시를 재현하는 공용 함수(`statement_generator_prompt`/`nli_statement_prompt`)를 호출해서 문자열을 만들기 때문에 **Faithfulness와 동일한 형태의 프롬프트**가 나온다.
 
 <br>
 

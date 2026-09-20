@@ -378,13 +378,12 @@ table td {
   padding: 0.6rem 0.9rem;
   text-align: left;
   vertical-align: top;
-  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 table th:not(:last-child),
 table td:not(:last-child) {
   width: 1%;
-  white-space: nowrap;
 }
 
 table th {

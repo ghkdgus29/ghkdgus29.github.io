@@ -1193,7 +1193,7 @@ class NoiseSensitivity(BaseMetric):
         # Call super() for validation (without passing llm in kwargs)
         super().__init__(name=name, **kwargs)
 ```
-> Constructor — the two prompts have different names from Faithfulness's, but they're built by calling the exact same `statement_generator_prompt()`/`nli_statement_prompt()` functions, so they end up producing **the exact same prompt strings as Faithfulness**.
+> Constructor — the two prompts are separate classes from Faithfulness's (defined in their own `noise_sensitivity` module), but internally they call shared helper functions (`statement_generator_prompt`/`nli_statement_prompt`) that reproduce the exact same instruction and examples, so they end up **producing the same shape of prompt as Faithfulness**.
 
 <br>
 
