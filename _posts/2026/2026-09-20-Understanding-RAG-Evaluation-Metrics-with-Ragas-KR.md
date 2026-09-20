@@ -1121,8 +1121,8 @@ class FactualCorrectness(BaseMetric):
 - 검색된 "관련 있는" 문서의 노이즈 때문에(`mode="relevant"`) 또는 "무관한" 문서에 낚여서(`mode="irrelevant"`) 틀린 답을 했는가를 본다.
 - Faithfulness/Factual Correctness는 "틀렸다/안 틀렸다"만 보지만, 이 지표는 그 오류가 어떤 종류의 검색 결과에서 비롯됐는지까지 구분한다.
 - response, reference를 각각 statement로 쪼갠 뒤, 검색된 청크 하나하나에 대해 두 statement 집합 각각이 그 청크로부터 추론 가능한지(NLI)를 판정한다.
-  - noise sensitivity (relevant) = reference와 불일치하면서 **relevant** 문서로 뒷받침되는 response claim 개수 / response claim 전체 개수
-  - noise sensitivity (irrelevant) = reference와 불일치하면서 **irrelevant** 문서로만 뒷받침되는 response claim 개수 / response claim 전체 개수
+  - `noise sensitivity (relevant) = reference와 불일치하면서 **relevant** 문서로 뒷받침되는 response claim 개수 / response claim 전체 개수`
+  - `noise sensitivity (irrelevant) = reference와 불일치하면서 **irrelevant** 문서로만 뒷받침되는 response claim 개수 / response claim 전체 개수`
 
 <br>
 

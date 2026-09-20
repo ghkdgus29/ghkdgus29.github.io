@@ -1121,8 +1121,8 @@ class FactualCorrectness(BaseMetric):
 - Checks whether the answer went wrong because of noise in the "relevant" retrieved documents (`mode="relevant"`), or because it got thrown off by "irrelevant" documents (`mode="irrelevant"`).
 - Faithfulness/Factual Correctness only tell you "wrong" vs. "not wrong," but this metric goes further and distinguishes what kind of retrieved result the error actually came from.
 - Splits the response and the reference into statements each, then for every retrieved chunk, runs an NLI judgment (an inferability check) for both statement sets against that chunk.
-  - noise sensitivity (relevant) = (number of response claims that disagree with the reference but are supported by a **relevant** document) / (total number of response claims)
-  - noise sensitivity (irrelevant) = (number of response claims that disagree with the reference but are supported only by an **irrelevant** document) / (total number of response claims)
+  - `noise sensitivity (relevant) = (number of response claims that disagree with the reference but are supported by a **relevant** document) / (total number of response claims)`
+  - `noise sensitivity (irrelevant) = (number of response claims that disagree with the reference but are supported only by an **irrelevant** document) / (total number of response claims)`
 
 <br>
 
