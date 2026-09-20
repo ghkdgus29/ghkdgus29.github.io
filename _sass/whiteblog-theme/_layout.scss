@@ -377,7 +377,6 @@ table thead,
 table tbody {
   display: table;
   width: 100%;
-  table-layout: fixed;
 }
 
 table th,
@@ -387,6 +386,11 @@ table td {
   text-align: left;
   vertical-align: top;
   word-break: break-word;
+}
+
+table th:not(:last-child),
+table td:not(:last-child) {
+  width: 1%;
 }
 
 table th {
