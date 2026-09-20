@@ -1298,9 +1298,9 @@ class NoiseSensitivity(BaseMetric):
 
 | Pattern | Interpretation |
 |---|---|
-| relevant only high | Retrieval pulls in relevant documents fine, but over-generalizes the details or conditional clauses inside them<br>- Check the chunking strategy or the generation-side prompt |
-| irrelevant only high | Irrelevant documents keep getting retrieved alongside relevant ones, and their content leaks into the answer<br>- Start by checking Precision@K and Context Precision (likely a retrieval-cleanliness problem) |
-| both relevant/irrelevant are low, but so are Faithfulness/Factual Correctness | The error is pure hallucination, with no grounding in any of the retrieved results |
+| relevant only high | Retrieval pulls in relevant documents fine, but over-generalizes the details or conditional clauses inside them<br>- To remove noise from the documents, check the chunking strategy or the generation-side prompt |
+| irrelevant only high | Irrelevant documents keep getting retrieved too, and their content leaks into the answer<br>- Start by checking Precision@K and Context Precision (likely a retrieval-cleanliness problem) |
+| noise is low, but so are Faithfulness/Factual Correctness | The error is pure hallucination, with no grounding in any of the retrieved results |
 
 <br>
 
