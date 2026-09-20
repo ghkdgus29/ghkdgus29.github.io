@@ -171,6 +171,7 @@ class ContextPrecisionWithReference(BaseMetric):
 <br>
 
 ## Diagnosis
+
 | Context Precision (AP) | Interpretation |
 |---|---|
 | Low | Check the retrieval logic<br>- Add reranking, or check whether the similarity score calculation itself has a problem |
@@ -226,6 +227,7 @@ result = precision_at_k(verdicts)
 <br>
 
 ## Diagnosis
+
 | Context Precision (AP) | Precision@K | Interpretation |
 |---|---|---|
 | High | Low | The correct document is ranked high, but the remaining top-K slots are filled with irrelevant chunks<br>- Lower top-k, or adjust the reranker cutoff |
@@ -429,6 +431,7 @@ class ContextRecall(BaseMetric):
 <br>
 
 ## Diagnosis
+
 | Context Precision | Context Recall | Interpretation |
 |---|---|---|
 | High | Low | top-k is likely too small, or the retriever is probably missing other evidence needed to construct the answer<br>- Check the document itself, e.g. its chunking strategy |
@@ -794,6 +797,7 @@ class AnswerRelevancy(BaseMetric):
 <br>
 
 ## Diagnosis
+
 | Faithfulness / Factual Correctness | Response Relevancy | Interpretation |
 |---|---|---|
 | Low | High | The failure mode of "sounding plausible while the content is actually wrong" |
@@ -1092,6 +1096,7 @@ class FactualCorrectness(BaseMetric):
 <br>
 
 ## Diagnosis
+
 | Faithfulness | Factual Correctness | Interpretation |
 |---|---|---|
 | High | High | Normal — grounded in the retrieved documents and consistent with the correct answer |
@@ -1275,6 +1280,7 @@ class NoiseSensitivity(BaseMetric):
 <br>
 
 ## Diagnosis
+
 | Pattern | Interpretation |
 |---|---|
 | relevant only high | Retrieval pulls in relevant documents fine, but over-generalizes the details or conditional clauses inside them<br>- Check the chunking strategy or the generation-side prompt |

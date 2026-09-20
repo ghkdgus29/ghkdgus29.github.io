@@ -171,6 +171,7 @@ class ContextPrecisionWithReference(BaseMetric):
 <br>
 
 ## 진단
+
 | Context Precision (AP) | 해석 |
 |---|---|
 | 낮음 | retrieval 로직을 점검<br>- Reranking을 추가하거나, similarity score 계산 자체에 문제가 없는지 확인 |
@@ -226,6 +227,7 @@ result = precision_at_k(verdicts)
 <br>
 
 ## 진단
+
 | Context Precision (AP) | Precision@K | 해석 |
 |---|---|---|
 | 높음 | 낮음 | 정답 문서는 상위에 있지만 top-K 나머지 자리가 irrelevant한 청크로 채워지고 있음<br>- top-k를 줄이거나 reranker 컷오프를 조정 |
@@ -429,6 +431,7 @@ class ContextRecall(BaseMetric):
 <br>
 
 ## 진단
+
 | Context Precision | Context Recall | 해석 |
 |---|---|---|
 | 높음 | 낮음 | top-k가 작거나 정답을 구성하는 다른 근거를 retriever가 놓치고 있을 확률이 높음<br>- 문서의 청킹 방식 등 문서 자체를 점검 |
@@ -794,6 +797,7 @@ class AnswerRelevancy(BaseMetric):
 <br>
 
 ## 진단
+
 | Faithfulness / Factual Correctness | Response Relevancy | 해석 |
 |---|---|---|
 | 낮음 | 높음 | "그럴듯하게 말은 하는데 내용이 틀린" 실패 유형 |
@@ -1092,6 +1096,7 @@ class FactualCorrectness(BaseMetric):
 <br>
 
 ## 진단
+
 | Faithfulness | Factual Correctness | 해석 |
 |---|---|---|
 | 높음 | 높음 | 정상 — 검색한 문서에 근거해 정답과도 일치 |
@@ -1275,6 +1280,7 @@ class NoiseSensitivity(BaseMetric):
 <br>
 
 ## 진단
+
 | 패턴 | 해석 |
 |---|---|
 | relevant만 높음 | 검색은 관련 문서를 잘 가져오는데, 그 문서 안의 디테일이나 조건절을 잘못 일반화<br>- 문서의 노이즈 제거를 위해 청크 분할이나 생성 쪽 프롬프트를 점검 |
