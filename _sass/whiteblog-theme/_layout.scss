@@ -391,6 +391,7 @@ table td {
 table th:not(:last-child),
 table td:not(:last-child) {
   width: 1%;
+  white-space: nowrap;
 }
 
 table th {
